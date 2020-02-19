@@ -1,0 +1,137 @@
+:root {
+    --form-font-size: 18px;
+}
+
+body {
+    font: 18px/1.4 sans-serif;
+}
+
+.wrapper {
+    margin: auto;
+}
+
+h2 {
+    margin: 0;
+}
+
+.countdown {
+    text-align: center;
+    font-weight: bold;
+    font-size: 4em;
+    line-height: 4em;
+}
+
+.phase {
+    padding: 2em;
+    border: 2px solid gray;
+    margin: 0 0 3em;
+}
+
+.phase_work {
+    border-color: red;
+    background: yellow;
+    outline: 0px solid red;
+    animation: work-blink .99s infinite;
+}
+
+@keyframes work-blink {
+    0% {
+        box-shadow: none;
+    }
+    50% {
+        box-shadow: 0 0 0 5px red;
+    }
+    100% {
+        box-shadow: none;
+    }
+}
+
+.phase_rest {
+    border-color: green;
+    background: lightgreen;
+    animation: rest-blink 3s infinite;
+}
+
+@keyframes rest-blink {
+    0% {
+        box-shadow: none;
+    }
+    30% {
+        box-shadow: none;
+    }
+    50% {
+        box-shadow: 0 0 0 5px green;
+    }
+    100% {
+        box-shadow: none;
+    }
+}
+
+label {
+    display: inline-block;
+    font-size: var(--form-font-size);
+    vertical-align: middle;
+    min-width: 100px;
+}
+
+.row {
+    padding: 1em .5em;
+    border-bottom: 1px solid #CCC;
+}
+
+.row label {
+    font-weight: bold;
+}
+
+.row select {
+    font-weight: bold;
+}
+
+.row_work {
+    color: red;
+}
+
+.row_work select {
+    color: red
+}
+
+.row_rest {
+    color: green;
+}
+
+.row_rest select {
+    color: green;
+}
+
+.row_btn {
+    padding-top: 2em;
+    border-bottom: none;
+}
+
+select {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: var(--form-font-size);
+    min-width: 4em;
+}
+
+button {
+    font-weight: bold;
+    font-size: var(--form-font-size);
+    min-width: 200px;
+    padding: 20px 20px;
+    background: lightgrey;
+}
+
+.final-image img {
+    max-width: 100%;
+}
+
+.phase-title {
+    font-size: 3em;
+}
+
+.round {
+    font-size: 2em;
+    font-weight: bold;
+}

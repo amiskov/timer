@@ -10,5 +10,5 @@
     ],
     "name": "Interval Timer",
     "short_name": "Timer",
-    "start_url": "/index.html"
+    "start_url": "/timer/index.html"
   }

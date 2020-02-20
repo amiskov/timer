@@ -1,7 +1,6 @@
 {
     "background_color": "purple",
     "description": "Interval timer.",
-    "display": "fullscreen",
     "icons": [
       {
         "src": "static/timer-512.png",

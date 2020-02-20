@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Interval Timer</title>
-    <link rel="stylesheet" href="style.css?c">
+    <link rel="stylesheet" href="./static/style.css">
 
     <meta name="apple-mobile-web-app-title" content="AppTitle">
 
@@ -28,7 +28,7 @@
     </div>
 
 
-    <script src="timer.js?c"></script>
+    <script src="./static/timer.js"></script>
     <!-- <script src="timer.min.js"></script> -->
     <script>
         var app = Elm.Main.init({
@@ -41,7 +41,7 @@
 
         app.ports.loadSample.subscribe(filename => {
             var key = filename;
-            var url = `./sounds/${filename}.mp3`;
+            var url = `./static/sounds/${filename}.mp3`;
 
             if (samples[key] == null) {
                 window.fetch(url)

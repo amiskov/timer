@@ -7,14 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Interval Timer</title>
     <link rel="stylesheet" href="./static/style.css">
-
-    <meta name="apple-mobile-web-app-title" content="AppTitle">
-
-
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-
+    <link rel="manifest" href="./manifest.webmanifest">
 </head>
 
 <body>
@@ -27,6 +20,13 @@
         <div id="app"></div>
     </div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker
+                .register('./sw.js')
+                .then(function () { console.log('Service Worker Registered'); });
+        }
+    </script>
 
     <script src="./static/timer.js"></script>
     <!-- <script src="timer.min.js"></script> -->
@@ -81,7 +81,7 @@
 
             source.buffer = samples[filename];
             source.connect(audioContext.destination);
-            source.context.onstatechange = function() { console.log(this.state);} // running
+            source.context.onstatechange = function () { console.log(this.state); } // running
             source.context.resume();
             source.context.state = "running"
             console.log('test: ', source.context.state)

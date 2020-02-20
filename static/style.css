@@ -4,6 +4,8 @@
 
 body {
     font: 18px/1.4 sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .wrapper {
@@ -22,49 +24,22 @@ h2 {
 }
 
 .phase {
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
     padding: 2em;
     border: 2px solid gray;
-    margin: 0 0 3em;
 }
 
 .phase_work {
     border-color: red;
-    background-color: pink;
-    outline: 0px solid red;
-    animation: work-blink .99s infinite;
-}
-
-@keyframes work-blink {
-    0% {
-        box-shadow: none;
-    }
-    50% {
-        box-shadow: 0 0 0 5px red;
-    }
-    100% {
-        box-shadow: none;
-    }
+    background-color: red;
+    color: #FFF;
 }
 
 .phase_rest {
-    border-color: green;
-    background-color: lightgreen;
-    animation: rest-blink 3s infinite;
-}
-
-@keyframes rest-blink {
-    0% {
-        box-shadow: none;
-    }
-    30% {
-        box-shadow: none;
-    }
-    50% {
-        box-shadow: 0 0 0 5px green;
-    }
-    100% {
-        box-shadow: none;
-    }
+    background-color: green;
+    color: #FFF;
 }
 
 label {
@@ -73,50 +48,31 @@ label {
     vertical-align: middle;
 }
 
-.label_repeat {
-    /* margin-left: .5em; */
-}
-
 section {
-    display: inline-block;
-    border: 1px solid #CCC;
-    box-shadow: 1px 2px 4px black;
-    border-radius: 5px;
-    padding: 1em;
+    text-align: center;
 }
 
 section.phases {
-    /* background: white; */
-    border: none;
-    box-shadow: none;
-    padding: 0;
+    padding-top: 2em;
 }
 
 section.rounds {
     background: #EEE;
+    padding-bottom: 2em;
+    margin-bottom: 1em;
 }
 
 section.repeats {
+    padding: 0 0 2em;
     background: #DDD;
 }
 
-section.phases div,
-section.rounds div {
+section.phases div {
     display: inline-block;
 }
 
 section.rounds>.row, section.repeats>.row {
     padding-top: 1em;
-}
-
-section.repeats>.row label {
-    /* width: 7.5ex; */
-}
-
-label.repeat-with {
-    text-align: right;
-    padding-right: 1ex;
-    box-sizing: border-box;
 }
 
 .row {
@@ -128,6 +84,7 @@ label.repeat-with {
 }
 
 .row select {
+    font-size: 1.2em;
     font-weight: bold;
 }
 
@@ -153,7 +110,29 @@ label.repeat-with {
 
 .row_btn {
     padding-top: 2em;
+    text-align: center;
     border-bottom: none;
+}
+
+.row_pause {
+    text-align: left;
+}
+
+.btn {
+    font-size: 2em;
+}
+
+.btn_go {
+    border: 3px solid #000;
+    border-radius: 5px;
+    background: none;
+}
+
+.btn_pause {
+    border: 3px solid #FFF;
+    color: #FFF;
+    border-radius: 5px;
+    background: none;
 }
 
 select {
@@ -172,24 +151,24 @@ button {
     background: lightgrey;
 }
 
-.final-image {
-    overflow: hidden;
+.final {
+    text-align: center;
 }
 
 .final-image img {
     max-width: 100%;
-    animation: swing 1s infinite;
+    animation: swing .7s infinite;
 }
 
 @keyframes swing {
     0% {
-        transform: rotate(10deg);
+        transform: rotate(5deg);
     }
     50% {
-        transform: rotate(-10deg);
+        transform: rotate(-5deg);
     }
     100% {
-        transform: rotate(10deg);
+        transform: rotate(5deg);
     }
 }
 
@@ -199,6 +178,11 @@ button {
 
 .round {
     font-size: 2em;
+    font-weight: bold;
+}
+
+.circuit {
+    font-size: 1.68em;
     font-weight: bold;
 }
 
@@ -243,7 +227,7 @@ button {
     padding: 0 .3em .3em .5em;
     background: #EEE;
     border-radius: 5px;
-    box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, .5);
 }
 
 .circuit-with-rest {

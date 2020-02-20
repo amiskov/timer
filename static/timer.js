@@ -5201,13 +5201,14 @@ var $author$project$Main$init = function (_v0) {
 			currentCircuit: 1,
 			currentRound: 1,
 			step: $author$project$Main$Setup,
-			timer: {circuitRest: 120, circuits: 4, rest: 20, rounds: 10, work: 40}
+			timer: {circuitRest: 0, circuits: 1, rest: 3, rounds: 2, work: 3}
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
 					$author$project$Main$loadSample('alert'),
-					$author$project$Main$loadSample('bell')
+					$author$project$Main$loadSample('bell'),
+					$author$project$Main$loadSample('final')
 				])));
 };
 var $author$project$Main$Tick = function (a) {
@@ -5661,6 +5662,12 @@ var $author$project$Main$Work = function (a) {
 var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$play = _Platform_outgoingPort('play', $elm$json$Json$Encode$string);
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Main$resumeAudioContext = _Platform_outgoingPort(
+	'resumeAudioContext',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -5714,7 +5721,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{step: $author$project$Main$Countdown}),
-					$elm$core$Platform$Cmd$none);
+					$author$project$Main$resumeAudioContext(_Utils_Tuple0));
 			case 'UpdateRoundsQuantity':
 				var r = msg.a;
 				var upd = F2(
@@ -5816,7 +5823,7 @@ var $author$project$Main$update = F2(
 										_Utils_update(
 											model,
 											{step: $author$project$Main$Finished}),
-										$author$project$Main$play('finalSong')) : _Utils_Tuple2(
+										$author$project$Main$play('final')) : _Utils_Tuple2(
 										_Utils_update(
 											model,
 											{
@@ -5906,7 +5913,10 @@ var $elm$html$Html$Attributes$src = function (url) {
 var $author$project$Main$viewFinished = function (model) {
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('final')
+			]),
 		_List_fromArray(
 			[
 				A2(
@@ -5928,7 +5938,7 @@ var $author$project$Main$viewFinished = function (model) {
 						$elm$html$Html$img,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$src('./img/arny_thumbs_up.jpg')
+								$elm$html$Html$Attributes$src('./static/img/arny_thumbs_up.jpg')
 							]),
 						_List_Nil)
 					]))
@@ -6056,18 +6066,38 @@ var $author$project$Main$viewRunningTimer = F2(
 								[
 									$elm$html$Html$text(
 									'Round ' + ($elm$core$String$fromInt(model.currentRound) + (' of ' + $elm$core$String$fromInt(model.timer.rounds))))
+								])),
+							A2(
+							$elm$html$Html$p,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('circuit')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									'Circuit ' + ($elm$core$String$fromInt(model.currentCircuit) + (' of ' + $elm$core$String$fromInt(model.timer.circuits))))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('row row_btn row_pause')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$button,
+									_List_fromArray(
+										[
+											$elm$html$Html$Events$onClick($author$project$Main$TogglePause),
+											$elm$html$Html$Attributes$class('btn btn_pause')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('॥ Pause')
+										]))
 								]))
-						])),
-					A2(
-					$elm$html$Html$button,
-					_List_fromArray(
-						[
-							$elm$html$Html$Events$onClick($author$project$Main$TogglePause),
-							$elm$html$Html$Attributes$class('btn-pause')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Pause')
 						]))
 				]));
 	});
@@ -6299,7 +6329,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Repeat')
+										$elm$html$Html$text('Circuits')
 									])),
 								A2(
 								$elm$html$Html$select,
@@ -6316,7 +6346,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('circuits with')
+										$elm$html$Html$text('with')
 									])),
 								A2(
 								$elm$html$Html$select,
@@ -6333,7 +6363,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('rest in between')
+										$elm$html$Html$text('rest')
 									]))
 							]))
 					])),
@@ -6349,7 +6379,8 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 						$elm$html$Html$button,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$type_('submit')
+								$elm$html$Html$Attributes$type_('submit'),
+								$elm$html$Html$Attributes$class('btn btn_go')
 							]),
 						_List_fromArray(
 							[

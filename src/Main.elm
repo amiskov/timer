@@ -10,6 +10,9 @@ import Time
 port loadSample : String -> Cmd msg
 
 
+port resumeAudioContext : () -> Cmd msg
+
+
 port play : String -> Cmd msg
 
 
@@ -63,17 +66,17 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { step = Setup
       , timer =
-            { rounds = 10
-            , work = 40
-            , rest = 20
-            , circuits = 4
-            , circuitRest = 120
+            { rounds = 2
+            , work = 3
+            , rest = 3
+            , circuits = 1
+            , circuitRest = 0
             }
       , currentRound = 1
       , currentCircuit = 1
       , countdown = 0
       }
-    , Cmd.batch [ loadSample "alert", loadSample "bell" ]
+    , Cmd.batch [ loadSample "alert", loadSample "bell", loadSample "final" ]
     )
 
 
@@ -115,7 +118,7 @@ update msg model =
 
         ShowCountdown ->
             ( { model | step = Countdown }
-            , Cmd.none
+            , resumeAudioContext ()
             )
 
         UpdateRoundsQuantity r ->
@@ -184,7 +187,7 @@ update msg model =
                                     if model.currentRound == model.timer.rounds then
                                         if model.currentCircuit == model.timer.circuits then
                                             ( { model | step = Finished }
-                                            , play "finalSong"
+                                            , play "final"
                                             )
 
                                         else
@@ -285,10 +288,10 @@ view model =
 
 
 viewFinished model =
-    div []
+    div [class "final"]
         [ h1 [] [ text "Well Done!" ]
         , div [ class "final-image" ]
-            [ img [ src "./img/arny_thumbs_up.jpg" ] []
+            [ img [ src "./static/img/arny_thumbs_up.jpg" ] []
             ]
         ]
 
@@ -336,12 +339,22 @@ viewRunningTimer model phase =
                         ++ String.fromInt model.timer.rounds
                     )
                 ]
+            , p [ class "circuit" ]
+                [ text
+                    ("Circuit "
+                        ++ String.fromInt model.currentCircuit
+                        ++ " of "
+                        ++ String.fromInt model.timer.circuits
+                    )
+                ]
+            , div [ class "row row_btn row_pause" ]
+                [ button
+                    [ onClick TogglePause
+                    , class "btn btn_pause"
+                    ]
+                    [ text "॥ Pause" ]
+                ]
             ]
-        , button
-            [ onClick TogglePause
-            , class "btn-pause"
-            ]
-            [ text "Pause" ]
         ]
 
 
@@ -366,16 +379,17 @@ viewTimerForm { rounds, work, rest, circuits, circuitRest } =
                     ]
                 ]
             , div [ class "row row_repeat" ]
-                [ label [] [ text "Repeat" ]
+                [ label [] [ text "Circuits" ]
                 , select [ onInput UpdateCircuits ] (viewRenderOptions 1 10 circuits)
-                , label [ class "label_repeat" ] [ text "circuits with" ]
+                , label [ class "label_repeat" ] [ text "with" ]
                 , select [ onInput UpdateCircuitRest ] (viewRenderOptions 0 200 circuitRest)
-                , label [ class "label_repeat" ] [ text "rest in between" ]
+                , label [ class "label_repeat" ] [ text "rest" ]
                 ]
             ]
         , div [ class "row row_btn row_go" ]
             [ button
                 [ type_ "submit"
+                , class "btn btn_go"
                 ]
                 [ text "Go!" ]
             ]

@@ -1,11 +1,21 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, selected, src, style, type_)
+import Html.Attributes exposing (attribute, class, selected, src, style, type_)
 import Html.Events exposing (onClick, onInput, onSubmit)
-import Task
 import Time
+
+
+port loadSample : String -> Cmd msg
+
+
+port play : String -> Cmd msg
+
+
+type Sound
+    = StartWork
+    | StartRest
 
 
 main =
@@ -18,17 +28,18 @@ main =
 
 
 type alias Timer =
-    { counter : Int
-    , rounds : Int
+    { rounds : Int
     , work : Int
     , rest : Int
-    , currentRound : Int
+    , circuits : Int
+    , circuitRest : Int
     }
 
 
 type Phase
     = Work Int
     | Rest Int
+    | RestBetweenCircuits Int
 
 
 type Step
@@ -43,6 +54,8 @@ type alias Model =
     { step : Step
     , timer : Timer
     , countdown : Int
+    , currentRound : Int
+    , currentCircuit : Int
     }
 
 
@@ -50,15 +63,17 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { step = Setup
       , timer =
-            { counter = 1
-            , rounds = 2
-            , work = 4
-            , rest = 2
-            , currentRound = 1
+            { rounds = 10
+            , work = 40
+            , rest = 20
+            , circuits = 4
+            , circuitRest = 120
             }
-      , countdown = 3
+      , currentRound = 1
+      , currentCircuit = 1
+      , countdown = 0
       }
-    , Cmd.none
+    , Cmd.batch [ loadSample "alert", loadSample "bell" ]
     )
 
 
@@ -67,6 +82,8 @@ type Msg
     | RunTimer
     | TogglePause
     | ShowCountdown
+    | UpdateCircuits String
+    | UpdateCircuitRest String
     | UpdateRoundsQuantity String
     | UpdateWork String
     | UpdateRest String
@@ -83,7 +100,7 @@ update msg model =
         TogglePause ->
             let
                 _ =
-                    Debug.log "paused 222" model.step
+                    Debug.log "paused" model.step
             in
             case model.step of
                 Paused s ->
@@ -128,11 +145,31 @@ update msg model =
             , Cmd.none
             )
 
+        UpdateCircuits newCircuits ->
+            let
+                upd t v =
+                    { t | circuits = v }
+            in
+            ( { model | timer = updateTimerSetting model.timer upd newCircuits }
+            , Cmd.none
+            )
+
+        UpdateCircuitRest newValue ->
+            let
+                upd t v =
+                    { t | circuitRest = v }
+            in
+            ( { model | timer = updateTimerSetting model.timer upd newValue }
+            , Cmd.none
+            )
+
         Tick _ ->
             case model.step of
                 Countdown ->
                     if model.countdown <= 0 then
-                        ( { model | step = Running (Work model.timer.work) }, Cmd.none )
+                        ( { model | step = Running (Work model.timer.work) }
+                        , play "bell"
+                        )
 
                     else
                         ( { model | countdown = model.countdown - 1 }
@@ -140,74 +177,62 @@ update msg model =
                         )
 
                 Running phase ->
-                    let
-                        singleRoundTime =
-                            model.timer.work + model.timer.rest
-
-                        totalTime =
-                            singleRoundTime * model.timer.rounds
-
-                        currentRoundTime =
-                            remainderBy singleRoundTime model.timer.counter
-
-                        currentPhaseTime =
-                            case phase of
-                                Work _ ->
-                                    remainderBy model.timer.work currentRoundTime
-
-                                Rest _ ->
-                                    remainderBy model.timer.rest currentRoundTime
-
-                        _ =
-                            Debug.log "round, phase" ( currentRoundTime, currentPhaseTime )
-
-                        nextRound =
-                            (model.timer.counter > 0)
-                                && (0 == remainderBy singleRoundTime model.timer.counter)
-                    in
-                    if model.timer.counter == (totalTime - model.timer.rest) then
-                        ( { model
-                            | step = Finished
-                          }
-                        , Cmd.none
-                        )
-
-                    else
-                        ( { model
-                            | timer = updateTimer nextRound model.timer
-                            , step =
-                                case phase of
-                                    Work _ ->
-                                        if currentPhaseTime == 0 && model.timer.counter /= 0 then
-                                            Running (Rest currentPhaseTime)
+                    case phase of
+                        Work t ->
+                            case t of
+                                0 ->
+                                    if model.currentRound == model.timer.rounds then
+                                        if model.currentCircuit == model.timer.circuits then
+                                            ( { model | step = Finished }
+                                            , play "finalSong"
+                                            )
 
                                         else
-                                            Running (Work currentPhaseTime)
+                                            ( { model
+                                                | step = Running (RestBetweenCircuits model.timer.circuitRest)
+                                              }
+                                            , play "alert"
+                                            )
 
-                                    Rest _ ->
-                                        if currentPhaseTime == 0 then
-                                            Running (Work currentPhaseTime)
+                                    else
+                                        ( { model | step = Running (Rest model.timer.rest) }
+                                        , play "alert"
+                                        )
 
-                                        else
-                                            Running (Rest currentPhaseTime)
-                          }
-                        , Cmd.none
-                        )
+                                _ ->
+                                    ( { model | step = Running (Work (t - 1)) }
+                                    , Cmd.none
+                                    )
+
+                        Rest t ->
+                            if t == 0 then
+                                ( { model
+                                    | step = Running (Work model.timer.work)
+                                    , currentRound = model.currentRound + 1
+                                  }
+                                , play "bell"
+                                )
+
+                            else
+                                ( { model | step = Running (Rest (t - 1)) }, Cmd.none )
+
+                        RestBetweenCircuits t ->
+                            if t == 0 then
+                                ( { model
+                                    | step = Running (Work model.timer.work)
+                                    , currentRound = 1
+                                    , currentCircuit = model.currentCircuit + 1
+                                  }
+                                , play "bell"
+                                )
+
+                            else
+                                ( { model | step = Running (RestBetweenCircuits (t - 1)) }
+                                , Cmd.none
+                                )
 
                 _ ->
                     ( model, Cmd.none )
-
-
-updateTimer nextRound t =
-    { t
-        | counter = t.counter + 1
-        , currentRound =
-            if nextRound then
-                t.currentRound + 1
-
-            else
-                t.currentRound
-    }
 
 
 updateTimerSetting timer updater newValue =
@@ -247,26 +272,15 @@ view model =
 
             Countdown ->
                 div [ class "countdown" ]
-                    [ text
-                        (if model.countdown > 0 then
-                            String.fromInt model.countdown
+                    (if model.countdown > 0 then
+                        [ text (String.fromInt model.countdown) ]
 
-                         else
-                            "Go!"
-                        )
-                    ]
+                     else
+                        [ text "Go!" ]
+                    )
 
             Running phase ->
-                let
-                    phaseData =
-                        case phase of
-                            Work t ->
-                                ( "Work", model.timer.work - t )
-
-                            Rest t ->
-                                ( "Rest", model.timer.rest - t )
-                in
-                viewRunningTimer model phaseData
+                viewRunningTimer model phase
         ]
 
 
@@ -288,32 +302,40 @@ viewPaused model =
         ]
 
 
-viewRunningTimer model ( phase, phaseTime ) =
+viewRunningTimer model phase =
     let
-        { work, rounds, currentRound } =
-            model.timer
+        ( phaseText, phaseTime ) =
+            case phase of
+                Work t ->
+                    ( "Work", t )
 
-        phaseText =
-            phase
-                ++ ": "
-                ++ String.fromInt
-                    (if phaseTime == 0 then
-                        -- start with work time from settings
-                        work
+                Rest t ->
+                    ( "Rest", t )
 
-                     else
-                        phaseTime
-                    )
+                RestBetweenCircuits t ->
+                    ( "Big Rest", t )
     in
     div
         [ class "wrapper" ]
         [ div
             [ class "phase"
-            , class ("phase_" ++ String.toLower phase)
+            , class ("phase_" ++ String.toLower phaseText)
             ]
-            [ h2 [class "phase-title"] [ text phaseText ]
+            [ h2 [ class "phase-title" ]
+                [ if phaseTime == 0 then
+                    s [] [ text phaseText ]
+
+                  else
+                    text (phaseText ++ ": " ++ String.fromInt phaseTime)
+                ]
             , p [ class "round" ]
-                [ text ("Round " ++ String.fromInt currentRound ++ " of " ++ String.fromInt rounds) ]
+                [ text
+                    ("Round "
+                        ++ String.fromInt model.currentRound
+                        ++ " of "
+                        ++ String.fromInt model.timer.rounds
+                    )
+                ]
             ]
         , button
             [ onClick TogglePause
@@ -323,20 +345,33 @@ viewRunningTimer model ( phase, phaseTime ) =
         ]
 
 
-viewTimerForm { rounds, work, rest } =
+viewTimerForm { rounds, work, rest, circuits, circuitRest } =
     form
         [ onSubmit ShowCountdown ]
-        [ div [ class "row row_rounds" ]
-            [ label [] [ text "Rounds" ]
-            , select [ onInput UpdateRoundsQuantity ] (viewRenderOptions 20 rounds)
-            ]
-        , div [ class "row row_work" ]
-            [ label [] [ text "Work" ]
-            , select [ onInput UpdateWork ] (viewRenderOptions 240 work)
-            ]
-        , div [ class "row row_rest" ]
-            [ label [] [ text "Rest" ]
-            , select [ onInput UpdateRest ] (viewRenderOptions 120 rest)
+        [ section [ class "repeats" ]
+            [ section [ class "rounds" ]
+                [ section [ class "phases" ]
+                    [ div [ class "row row_work" ]
+                        [ label [] [ text "Work" ]
+                        , select [ onInput UpdateWork ] (viewRenderOptions 1 240 work)
+                        ]
+                    , div [ class "row row_rest" ]
+                        [ label [] [ text "Rest" ]
+                        , select [ onInput UpdateRest ] (viewRenderOptions 1 120 rest)
+                        ]
+                    ]
+                , div [ class "row row_rounds" ]
+                    [ label [] [ text "Rounds" ]
+                    , select [ onInput UpdateRoundsQuantity ] (viewRenderOptions 1 20 rounds)
+                    ]
+                ]
+            , div [ class "row row_repeat" ]
+                [ label [] [ text "Repeat" ]
+                , select [ onInput UpdateCircuits ] (viewRenderOptions 1 10 circuits)
+                , label [ class "label_repeat" ] [ text "circuits with" ]
+                , select [ onInput UpdateCircuitRest ] (viewRenderOptions 0 200 circuitRest)
+                , label [ class "label_repeat" ] [ text "rest in between" ]
+                ]
             ]
         , div [ class "row row_btn row_go" ]
             [ button
@@ -344,10 +379,52 @@ viewTimerForm { rounds, work, rest } =
                 ]
                 [ text "Go!" ]
             ]
+
+        -- , div [ class "dots" ]
+        --     (drawCircuit (drawRoundDots rounds work rest) circuits circuitRest)
         ]
 
 
-viewRenderOptions count selectedOptionNum =
+drawCircuit roundDots c r =
+    List.map
+        (\_ ->
+            div [ class "circuit-with-rest" ]
+                [ div [ class "circuit-rounds" ]
+                    roundDots
+                , div
+                    [ class "circuit-rest"
+                    , class "dot"
+                    , class "rest"
+                    , style "width" (String.fromInt r ++ "px")
+                    ]
+                    []
+                ]
+        )
+        (List.range 1 c)
+
+
+drawRoundDots n w r =
+    List.map
+        (\_ ->
+            div [ class "round-scheme" ]
+                [ div
+                    [ class "dot"
+                    , class "work"
+                    , style "width" (String.fromInt w ++ "px")
+                    ]
+                    []
+                , div
+                    [ class "dot"
+                    , class "rest"
+                    , style "width" (String.fromInt r ++ "px")
+                    ]
+                    []
+                ]
+        )
+        (List.range 1 n)
+
+
+viewRenderOptions start end selectedOptionNum =
     List.map
         (\n -> option [ selected (selectedOptionNum == n) ] [ text (String.fromInt n) ])
-        (List.range 1 count)
+        (List.range start end)

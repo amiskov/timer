@@ -8,6 +8,9 @@
     <title>Interval Timer</title>
     <link rel="stylesheet" href="style.css?c">
 
+    <meta name="apple-mobile-web-app-title" content="AppTitle">
+
+
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -15,15 +18,78 @@
 </head>
 
 <body>
+    <div id="test"></div>
     <div class="timer">
+        <!-- <audio controls preload id="bell" src="./sounds/bell.mp3"></audio>
+        <audio controls preload id="alert" src="./sounds/alert.mp3"></audio>
+        <audio controls preload id="applause" loop src="./sounds/appl.mp3"></audio>
+        <audio controls preload id="finalSong" src="./sounds/run_away.mp3"></audio> -->
         <div id="app"></div>
     </div>
+
+
     <script src="timer.js?c"></script>
     <!-- <script src="timer.min.js"></script> -->
     <script>
         var app = Elm.Main.init({
             node: document.getElementById('app')
-        }); 
+        });
+
+
+        var samples = {};
+        var request = null;
+
+        app.ports.loadSample.subscribe(filename => {
+            var key = filename;
+            var url = `./sounds/${filename}.mp3`;
+
+            if (samples[key] == null) {
+                window.fetch(url)
+                    .then(response => response.arrayBuffer())
+                    .then(arrayBuffer => {
+
+                        var AudioContext = window.AudioContext || window.webkitAudioContext;
+                        var audioContext = new AudioContext();
+
+                        console.log(audioContext.state); //suspended
+
+                        audioContext.resume();
+                        audioContext.onstatechange = () => console.log(audioContext.state); // running
+                        return audioContext.decodeAudioData(arrayBuffer,
+
+
+                            audioBuffer => {
+                                samples[key] = audioBuffer;
+                            },
+                            error =>
+                                console.error(error)
+                        )
+                    })
+            }
+        });
+
+        app.ports.play.subscribe(filename => {
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            var audioContext = new AudioContext();
+
+            // console.log(audioContext.state); //suspended
+
+
+
+
+            var source = audioContext.createBufferSource();
+
+            source.buffer = samples[filename];
+            source.connect(audioContext.destination);
+            source.context.onstatechange = function() { console.log(this.state);} // running
+            source.context.resume();
+            source.context.state = "running"
+            console.log('test: ', source.context.state)
+            source.start(0);
+
+            console.log(filename);
+            console.log(source)
+        });
     </script>
 </body>
 

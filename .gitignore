@@ -3,4 +3,5 @@ static/workout.min.js
 .DS_Store
 elm-stuff
 src/Temp.elm
-img
+static/sounds/run_away.mp3
+static/sounds/appl.mp3

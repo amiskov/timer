@@ -29,7 +29,7 @@ h2 {
 
 .phase_work {
     border-color: red;
-    background: yellow;
+    background-color: pink;
     outline: 0px solid red;
     animation: work-blink .99s infinite;
 }
@@ -48,7 +48,7 @@ h2 {
 
 .phase_rest {
     border-color: green;
-    background: lightgreen;
+    background-color: lightgreen;
     animation: rest-blink 3s infinite;
 }
 
@@ -71,12 +71,56 @@ label {
     display: inline-block;
     font-size: var(--form-font-size);
     vertical-align: middle;
-    min-width: 100px;
+}
+
+.label_repeat {
+    /* margin-left: .5em; */
+}
+
+section {
+    display: inline-block;
+    border: 1px solid #CCC;
+    box-shadow: 1px 2px 4px black;
+    border-radius: 5px;
+    padding: 1em;
+}
+
+section.phases {
+    /* background: white; */
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+section.rounds {
+    background: #EEE;
+}
+
+section.repeats {
+    background: #DDD;
+}
+
+section.phases div,
+section.rounds div {
+    display: inline-block;
+}
+
+section.rounds>.row, section.repeats>.row {
+    padding-top: 1em;
+}
+
+section.repeats>.row label {
+    /* width: 7.5ex; */
+}
+
+label.repeat-with {
+    text-align: right;
+    padding-right: 1ex;
+    box-sizing: border-box;
 }
 
 .row {
-    padding: 1em .5em;
-    border-bottom: 1px solid #CCC;
+    padding: .5em 0;
 }
 
 .row label {
@@ -103,6 +147,10 @@ label {
     color: green;
 }
 
+.row_repeat div {
+    margin-bottom: .5em;
+}
+
 .row_btn {
     padding-top: 2em;
     border-bottom: none;
@@ -110,9 +158,10 @@ label {
 
 select {
     display: inline-block;
+    margin: 0 .5em;
     vertical-align: middle;
     font-size: var(--form-font-size);
-    min-width: 4em;
+    min-width: 3em;
 }
 
 button {
@@ -123,8 +172,25 @@ button {
     background: lightgrey;
 }
 
+.final-image {
+    overflow: hidden;
+}
+
 .final-image img {
     max-width: 100%;
+    animation: swing 1s infinite;
+}
+
+@keyframes swing {
+    0% {
+        transform: rotate(10deg);
+    }
+    50% {
+        transform: rotate(-10deg);
+    }
+    100% {
+        transform: rotate(10deg);
+    }
 }
 
 .phase-title {
@@ -134,4 +200,59 @@ button {
 .round {
     font-size: 2em;
     font-weight: bold;
+}
+
+/* Dots */
+
+.dots {
+    margin: 1em 0 0;
+    padding: .5em;
+    background: #DDD;
+    display: inline-block;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px black;
+}
+
+.dot {
+    display: inline-block;
+    height: 7px;
+}
+
+.round-scheme {
+    display: inline-block;
+    margin-right: 5px;
+    white-space: nowrap;
+    background: #EEE;
+}
+
+.dot.work {
+    background: red;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.dot.rest {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background: green;
+}
+
+.circuit-rounds {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0 .3em .3em .5em;
+    background: #EEE;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+}
+
+.circuit-with-rest {
+    display: inline-block;
+    padding-bottom: .5em;
+}
+
+.circuit-rest {
+    border-radius: 5px;
+    display: inline-block;
+    margin-left: .5em;
 }

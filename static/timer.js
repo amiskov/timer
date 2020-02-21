@@ -5199,10 +5199,10 @@ var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
 			countdown: $author$project$Main$initialCountdown,
-			currentCircuit: 1,
+			currentExercise: 1,
 			currentRound: 1,
 			step: $author$project$Main$Setup,
-			timer: {circuitRest: 0, circuits: 1, rest: 5, rounds: 1, work: 5}
+			timer: {exercises: 10, rest: 15, roundRest: 120, rounds: 3, work: 45}
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
@@ -5653,8 +5653,8 @@ var $author$project$Main$Paused = function (a) {
 var $author$project$Main$Rest = function (a) {
 	return {$: 'Rest', a: a};
 };
-var $author$project$Main$RestBetweenCircuits = function (a) {
-	return {$: 'RestBetweenCircuits', a: a};
+var $author$project$Main$RestBetweenRounds = function (a) {
+	return {$: 'RestBetweenRounds', a: a};
 };
 var $author$project$Main$Running = function (a) {
 	return {$: 'Running', a: a};
@@ -5708,7 +5708,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{countdown: $author$project$Main$initialCountdown, currentCircuit: 1, currentRound: 1, step: $author$project$Main$Setup}),
+						{countdown: $author$project$Main$initialCountdown, currentExercise: 1, currentRound: 1, step: $author$project$Main$Setup}),
 					$author$project$Main$stopAllSounds(_Utils_Tuple0));
 			case 'TogglePause':
 				var _v1 = model.step;
@@ -5745,13 +5745,13 @@ var $author$project$Main$update = F2(
 								$author$project$Main$resumeAudioContext(_Utils_Tuple0),
 								$author$project$Main$play('count_tick')
 							])));
-			case 'UpdateRoundsQuantity':
+			case 'UpdateExercisesQuantity':
 				var r = msg.a;
 				var upd = F2(
 					function (t, v) {
 						return _Utils_update(
 							t,
-							{rounds: v});
+							{exercises: v});
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -5790,28 +5790,28 @@ var $author$project$Main$update = F2(
 							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newWork)
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 'UpdateCircuits':
-				var newCircuits = msg.a;
+			case 'UpdateRounds':
+				var newRounds = msg.a;
 				var upd = F2(
 					function (t, v) {
 						return _Utils_update(
 							t,
-							{circuits: v});
+							{rounds: v});
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newCircuits)
+							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newRounds)
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 'UpdateCircuitRest':
+			case 'UpdateRoundRest':
 				var newValue = msg.a;
 				var upd = F2(
 					function (t, v) {
 						return _Utils_update(
 							t,
-							{circuitRest: v});
+							{roundRest: v});
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -5846,7 +5846,7 @@ var $author$project$Main$update = F2(
 							case 'Work':
 								var t = phase.a;
 								if (!t) {
-									return _Utils_eq(model.currentRound, model.timer.rounds) ? (_Utils_eq(model.currentCircuit, model.timer.circuits) ? _Utils_Tuple2(
+									return _Utils_eq(model.currentExercise, model.timer.exercises) ? (_Utils_eq(model.currentRound, model.timer.rounds) ? _Utils_Tuple2(
 										_Utils_update(
 											model,
 											{step: $author$project$Main$Finished}),
@@ -5855,7 +5855,7 @@ var $author$project$Main$update = F2(
 											model,
 											{
 												step: $author$project$Main$Running(
-													$author$project$Main$RestBetweenCircuits(model.timer.circuitRest))
+													$author$project$Main$RestBetweenRounds(model.timer.roundRest))
 											}),
 										$author$project$Main$play('alert'))) : _Utils_Tuple2(
 										_Utils_update(
@@ -5881,7 +5881,7 @@ var $author$project$Main$update = F2(
 									_Utils_update(
 										model,
 										{
-											currentRound: model.currentRound + 1,
+											currentExercise: model.currentExercise + 1,
 											step: $author$project$Main$Running(
 												$author$project$Main$Work(model.timer.work))
 										}),
@@ -5899,8 +5899,8 @@ var $author$project$Main$update = F2(
 									_Utils_update(
 										model,
 										{
-											currentCircuit: model.currentCircuit + 1,
-											currentRound: 1,
+											currentExercise: 1,
+											currentRound: model.currentRound + 1,
 											step: $author$project$Main$Running(
 												$author$project$Main$Work(model.timer.work))
 										}),
@@ -5909,7 +5909,7 @@ var $author$project$Main$update = F2(
 										model,
 										{
 											step: $author$project$Main$Running(
-												$author$project$Main$RestBetweenCircuits(t - 1))
+												$author$project$Main$RestBetweenRounds(t - 1))
 										}),
 									$elm$core$Platform$Cmd$none);
 						}
@@ -6042,7 +6042,7 @@ var $author$project$Main$viewTimer = F2(
 					return _Utils_Tuple2('Rest', t);
 				default:
 					var t = phase.a;
-					return _Utils_Tuple2('Circuit rest', t);
+					return _Utils_Tuple2('Round rest', t);
 			}
 		}();
 		var phaseText = _v0.a;
@@ -6089,23 +6089,23 @@ var $author$project$Main$viewTimer = F2(
 							$elm$html$Html$p,
 							_List_fromArray(
 								[
+									$elm$html$Html$Attributes$class('exercise')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									'Exercise ' + ($elm$core$String$fromInt(model.currentExercise) + (' of ' + $elm$core$String$fromInt(model.timer.exercises))))
+								])),
+							A2(
+							$elm$html$Html$p,
+							_List_fromArray(
+								[
 									$elm$html$Html$Attributes$class('round')
 								]),
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
 									'Round ' + ($elm$core$String$fromInt(model.currentRound) + (' of ' + $elm$core$String$fromInt(model.timer.rounds))))
-								])),
-							A2(
-							$elm$html$Html$p,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('circuit')
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									'Circuit ' + ($elm$core$String$fromInt(model.currentCircuit) + (' of ' + $elm$core$String$fromInt(model.timer.circuits))))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -6154,17 +6154,17 @@ var $author$project$Main$viewTimer = F2(
 				]));
 	});
 var $author$project$Main$ShowCountdown = {$: 'ShowCountdown'};
-var $author$project$Main$UpdateCircuitRest = function (a) {
-	return {$: 'UpdateCircuitRest', a: a};
-};
-var $author$project$Main$UpdateCircuits = function (a) {
-	return {$: 'UpdateCircuits', a: a};
+var $author$project$Main$UpdateExercisesQuantity = function (a) {
+	return {$: 'UpdateExercisesQuantity', a: a};
 };
 var $author$project$Main$UpdateRest = function (a) {
 	return {$: 'UpdateRest', a: a};
 };
-var $author$project$Main$UpdateRoundsQuantity = function (a) {
-	return {$: 'UpdateRoundsQuantity', a: a};
+var $author$project$Main$UpdateRoundRest = function (a) {
+	return {$: 'UpdateRoundRest', a: a};
+};
+var $author$project$Main$UpdateRounds = function (a) {
+	return {$: 'UpdateRounds', a: a};
 };
 var $author$project$Main$UpdateWork = function (a) {
 	return {$: 'UpdateWork', a: a};
@@ -6289,11 +6289,11 @@ var $author$project$Main$viewRenderOptions = F4(
 			A3($author$project$Main$rangeWithStep, start, end, step));
 	});
 var $author$project$Main$viewTimerForm = function (_v0) {
-	var rounds = _v0.rounds;
+	var exercises = _v0.exercises;
 	var work = _v0.work;
 	var rest = _v0.rest;
-	var circuits = _v0.circuits;
-	var circuitRest = _v0.circuitRest;
+	var rounds = _v0.rounds;
+	var roundRest = _v0.roundRest;
 	return A2(
 		$elm$html$Html$form,
 		_List_fromArray(
@@ -6314,7 +6314,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 						$elm$html$Html$section,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('rounds')
+								$elm$html$Html$Attributes$class('exercises')
 							]),
 						_List_fromArray(
 							[
@@ -6377,7 +6377,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('row row_rounds')
+										$elm$html$Html$Attributes$class('row row_exercises')
 									]),
 								_List_fromArray(
 									[
@@ -6386,22 +6386,22 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 										_List_Nil,
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Rounds')
+												$elm$html$Html$text('Exercises')
 											])),
 										A2(
 										$elm$html$Html$select,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onInput($author$project$Main$UpdateRoundsQuantity)
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateExercisesQuantity)
 											]),
-										A4($author$project$Main$viewRenderOptions, 1, 20, 1, rounds))
+										A4($author$project$Main$viewRenderOptions, 1, 20, 1, exercises))
 									]))
 							])),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('row row_circuit')
+								$elm$html$Html$Attributes$class('row row_round')
 							]),
 						_List_fromArray(
 							[
@@ -6418,15 +6418,15 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 										_List_Nil,
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Circuits')
+												$elm$html$Html$text('Rounds')
 											])),
 										A2(
 										$elm$html$Html$select,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuits)
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateRounds)
 											]),
-										A4($author$project$Main$viewRenderOptions, 1, 10, 1, circuits))
+										A4($author$project$Main$viewRenderOptions, 1, 10, 1, rounds))
 									])),
 								A2(
 								$elm$html$Html$div,
@@ -6446,11 +6446,11 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 											[
 												$elm$html$Html$text('with rest')
 											])),
-										(circuits <= 1) ? A2(
+										(rounds <= 1) ? A2(
 										$elm$html$Html$select,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuitRest),
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateRoundRest),
 												$elm$html$Html$Attributes$disabled(true)
 											]),
 										_List_fromArray(
@@ -6466,9 +6466,9 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 										$elm$html$Html$select,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuitRest)
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateRoundRest)
 											]),
-										A4($author$project$Main$viewRenderOptions, 0, 240, 5, circuitRest))
+										A4($author$project$Main$viewRenderOptions, 0, 240, 5, roundRest))
 									]))
 							]))
 					])),

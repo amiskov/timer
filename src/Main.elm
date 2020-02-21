@@ -29,18 +29,18 @@ main =
 
 
 type alias Timer =
-    { rounds : Int
+    { exercises : Int
     , work : Int
     , rest : Int
-    , circuits : Int
-    , circuitRest : Int
+    , rounds : Int
+    , roundRest : Int
     }
 
 
 type Phase
     = Work Int
     | Rest Int
-    | RestBetweenCircuits Int
+    | RestBetweenRounds Int
 
 
 type Step
@@ -55,8 +55,8 @@ type alias Model =
     { step : Step
     , timer : Timer
     , countdown : Int
+    , currentExercise : Int
     , currentRound : Int
-    , currentCircuit : Int
     }
 
 
@@ -69,14 +69,14 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { step = Setup
       , timer =
-            { rounds = 1
-            , work = 5
-            , rest = 5
-            , circuits = 1
-            , circuitRest = 0
+            { exercises = 10
+            , work = 45
+            , rest = 15
+            , rounds = 3
+            , roundRest = 120
             }
+      , currentExercise = 1
       , currentRound = 1
-      , currentCircuit = 1
       , countdown = initialCountdown
       }
     , Cmd.batch
@@ -95,9 +95,9 @@ type Msg
     | Cancel
     | TogglePause
     | ShowCountdown
-    | UpdateCircuits String
-    | UpdateCircuitRest String
-    | UpdateRoundsQuantity String
+    | UpdateRounds String
+    | UpdateRoundRest String
+    | UpdateExercisesQuantity String
     | UpdateWork String
     | UpdateRest String
 
@@ -114,8 +114,8 @@ update msg model =
             ( { model
                 | step = Setup
                 , countdown = initialCountdown
+                , currentExercise = 1
                 , currentRound = 1
-                , currentCircuit = 1
               }
             , stopAllSounds ()
             )
@@ -140,10 +140,10 @@ update msg model =
             , Cmd.batch [ resumeAudioContext (), play "count_tick" ]
             )
 
-        UpdateRoundsQuantity r ->
+        UpdateExercisesQuantity r ->
             let
                 upd t v =
-                    { t | rounds = v }
+                    { t | exercises = v }
             in
             ( { model | timer = updateTimerSetting model.timer upd r }
             , Cmd.none
@@ -167,19 +167,19 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateCircuits newCircuits ->
+        UpdateRounds newRounds ->
             let
                 upd t v =
-                    { t | circuits = v }
+                    { t | rounds = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd newCircuits }
+            ( { model | timer = updateTimerSetting model.timer upd newRounds }
             , Cmd.none
             )
 
-        UpdateCircuitRest newValue ->
+        UpdateRoundRest newValue ->
             let
                 upd t v =
-                    { t | circuitRest = v }
+                    { t | roundRest = v }
             in
             ( { model | timer = updateTimerSetting model.timer upd newValue }
             , Cmd.none
@@ -208,15 +208,15 @@ update msg model =
                         Work t ->
                             case t of
                                 0 ->
-                                    if model.currentRound == model.timer.rounds then
-                                        if model.currentCircuit == model.timer.circuits then
+                                    if model.currentExercise == model.timer.exercises then
+                                        if model.currentRound == model.timer.rounds then
                                             ( { model | step = Finished }
                                             , play "final"
                                             )
 
                                         else
                                             ( { model
-                                                | step = Running (RestBetweenCircuits model.timer.circuitRest)
+                                                | step = Running (RestBetweenRounds model.timer.roundRest)
                                               }
                                             , play "alert"
                                             )
@@ -235,7 +235,7 @@ update msg model =
                             if t == 0 then
                                 ( { model
                                     | step = Running (Work model.timer.work)
-                                    , currentRound = model.currentRound + 1
+                                    , currentExercise = model.currentExercise + 1
                                   }
                                 , play "bell"
                                 )
@@ -243,18 +243,18 @@ update msg model =
                             else
                                 ( { model | step = Running (Rest (t - 1)) }, Cmd.none )
 
-                        RestBetweenCircuits t ->
+                        RestBetweenRounds t ->
                             if t == 0 then
                                 ( { model
                                     | step = Running (Work model.timer.work)
-                                    , currentRound = 1
-                                    , currentCircuit = model.currentCircuit + 1
+                                    , currentExercise = 1
+                                    , currentRound = model.currentRound + 1
                                   }
                                 , play "bell"
                                 )
 
                             else
-                                ( { model | step = Running (RestBetweenCircuits (t - 1)) }
+                                ( { model | step = Running (RestBetweenRounds (t - 1)) }
                                 , Cmd.none
                                 )
 
@@ -354,8 +354,8 @@ viewTimer model phase =
                 Rest t ->
                     ( "Rest", t )
 
-                RestBetweenCircuits t ->
-                    ( "Circuit rest", t )
+                RestBetweenRounds t ->
+                    ( "Round rest", t )
     in
     div
         [ class "wrapper"
@@ -378,20 +378,20 @@ viewTimer model phase =
                   else
                     text (phaseText ++ ": " ++ String.fromInt phaseTime)
                 ]
+            , p [ class "exercise" ]
+                [ text
+                    ("Exercise "
+                        ++ String.fromInt model.currentExercise
+                        ++ " of "
+                        ++ String.fromInt model.timer.exercises
+                    )
+                ]
             , p [ class "round" ]
                 [ text
                     ("Round "
                         ++ String.fromInt model.currentRound
                         ++ " of "
                         ++ String.fromInt model.timer.rounds
-                    )
-                ]
-            , p [ class "circuit" ]
-                [ text
-                    ("Circuit "
-                        ++ String.fromInt model.currentCircuit
-                        ++ " of "
-                        ++ String.fromInt model.timer.circuits
                     )
                 ]
             , div [ class "row row_btn row_pause" ]
@@ -426,11 +426,11 @@ viewTimer model phase =
         ]
 
 
-viewTimerForm { rounds, work, rest, circuits, circuitRest } =
+viewTimerForm { exercises, work, rest, rounds, roundRest } =
     form
         [ onSubmit ShowCountdown ]
         [ section [ class "repeats" ]
-            [ section [ class "rounds" ]
+            [ section [ class "exercises" ]
                 [ section [ class "phases" ]
                     [ div [ class "row row_work" ]
                         [ label [] [ text "Work" ]
@@ -441,30 +441,30 @@ viewTimerForm { rounds, work, rest, circuits, circuitRest } =
                         , select [ onInput UpdateRest ] (viewRenderOptions 1 120 5 rest)
                         ]
                     ]
-                , div [ class "row row_rounds" ]
-                    [ label [] [ text "Rounds" ]
-                    , select [ onInput UpdateRoundsQuantity ] (viewRenderOptions 1 20 1 rounds)
+                , div [ class "row row_exercises" ]
+                    [ label [] [ text "Exercises" ]
+                    , select [ onInput UpdateExercisesQuantity ] (viewRenderOptions 1 20 1 exercises)
                     ]
                 ]
-            , div [ class "row row_circuit" ]
+            , div [ class "row row_round" ]
                 [ div [ class "row__inner" ]
-                    [ label [] [ text "Circuits" ]
-                    , select [ onInput UpdateCircuits ] (viewRenderOptions 1 10 1 circuits)
+                    [ label [] [ text "Rounds" ]
+                    , select [ onInput UpdateRounds ] (viewRenderOptions 1 10 1 rounds)
                     ]
                 , div [ class "row__inner" ]
                     [ label [ class "label_repeat-with" ] [ text "with rest" ]
-                    , if circuits <= 1 then
+                    , if rounds <= 1 then
                         select
-                            [ onInput UpdateCircuitRest
+                            [ onInput UpdateRoundRest
                             , disabled True
                             ]
                             [ option [] [ text "0" ] ]
 
                       else
                         select
-                            [ onInput UpdateCircuitRest
+                            [ onInput UpdateRoundRest
                             ]
-                            (viewRenderOptions 0 240 5 circuitRest)
+                            (viewRenderOptions 0 240 5 roundRest)
                     ]
                 ]
             ]

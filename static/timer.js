@@ -5192,7 +5192,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$Setup = {$: 'Setup'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$Main$initialCountdown = 0;
+var $author$project$Main$initialCountdown = 3;
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$loadSample = _Platform_outgoingPort('loadSample', $elm$json$Json$Encode$string);
 var $author$project$Main$init = function (_v0) {
@@ -5207,6 +5207,8 @@ var $author$project$Main$init = function (_v0) {
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
+					$author$project$Main$loadSample('count_tick'),
+					$author$project$Main$loadSample('count_beep'),
 					$author$project$Main$loadSample('alert'),
 					$author$project$Main$loadSample('bell'),
 					$author$project$Main$loadSample('final')
@@ -5737,7 +5739,12 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{step: $author$project$Main$Countdown}),
-					$author$project$Main$resumeAudioContext(_Utils_Tuple0));
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Main$resumeAudioContext(_Utils_Tuple0),
+								$author$project$Main$play('count_tick')
+							])));
 			case 'UpdateRoundsQuantity':
 				var r = msg.a;
 				var upd = F2(
@@ -5824,11 +5831,15 @@ var $author$project$Main$update = F2(
 									step: $author$project$Main$Running(
 										$author$project$Main$Work(model.timer.work))
 								}),
-							$author$project$Main$play('bell')) : _Utils_Tuple2(
+							$author$project$Main$play('bell')) : ((model.countdown > 1) ? _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{countdown: model.countdown - 1}),
-							$elm$core$Platform$Cmd$none);
+							$author$project$Main$play('count_tick')) : _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{countdown: model.countdown - 1}),
+							$author$project$Main$play('count_beep')));
 					case 'Running':
 						var phase = _v2.a;
 						switch (phase.$) {
@@ -6002,6 +6013,13 @@ var $author$project$Main$viewFinished = function (model) {
 var $author$project$Main$TogglePause = {$: 'TogglePause'};
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
 var $elm$html$Html$s = _VirtualDom_node('s');
 var $elm$core$String$toLower = _String_toLower;
 var $author$project$Main$viewTimer = F2(
@@ -6024,7 +6042,7 @@ var $author$project$Main$viewTimer = F2(
 					return _Utils_Tuple2('Rest', t);
 				default:
 					var t = phase.a;
-					return _Utils_Tuple2('Big Rest', t);
+					return _Utils_Tuple2('Circuit rest', t);
 			}
 		}();
 		var phaseText = _v0.a;
@@ -6045,7 +6063,8 @@ var $author$project$Main$viewTimer = F2(
 						[
 							$elm$html$Html$Attributes$class('phase'),
 							$elm$html$Html$Attributes$class(
-							'phase_' + $elm$core$String$toLower(phaseText))
+							'phase_' + $elm$core$String$toLower(
+								A3($elm$core$String$replace, ' ', '-', phaseText)))
 						]),
 					_List_fromArray(
 						[

@@ -62,7 +62,7 @@ type alias Model =
 
 initialCountdown : Int
 initialCountdown =
-    0
+    3
 
 
 init : () -> ( Model, Cmd Msg )
@@ -79,7 +79,13 @@ init _ =
       , currentCircuit = 1
       , countdown = initialCountdown
       }
-    , Cmd.batch [ loadSample "alert", loadSample "bell", loadSample "final" ]
+    , Cmd.batch
+        [ loadSample "count_tick"
+        , loadSample "count_beep"
+        , loadSample "alert"
+        , loadSample "bell"
+        , loadSample "final"
+        ]
     )
 
 
@@ -131,7 +137,7 @@ update msg model =
 
         ShowCountdown ->
             ( { model | step = Countdown }
-            , resumeAudioContext ()
+            , Cmd.batch [ resumeAudioContext (), play "count_tick" ]
             )
 
         UpdateRoundsQuantity r ->
@@ -187,9 +193,14 @@ update msg model =
                         , play "bell"
                         )
 
+                    else if model.countdown > 1 then
+                        ( { model | countdown = model.countdown - 1 }
+                        , play "count_tick"
+                        )
+
                     else
                         ( { model | countdown = model.countdown - 1 }
-                        , Cmd.none
+                        , play "count_beep"
                         )
 
                 Running phase ->
@@ -344,7 +355,7 @@ viewTimer model phase =
                     ( "Rest", t )
 
                 RestBetweenCircuits t ->
-                    ( "Big Rest", t )
+                    ( "Circuit rest", t )
     in
     div
         [ class "wrapper"
@@ -358,7 +369,7 @@ viewTimer model phase =
         ]
         [ div
             [ class "phase"
-            , class ("phase_" ++ String.toLower phaseText)
+            , class ("phase_" ++ String.toLower (String.replace " " "-" phaseText))
             ]
             [ h2 [ class "phase-title" ]
                 [ if phaseTime == 0 then

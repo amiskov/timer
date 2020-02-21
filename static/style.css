@@ -85,7 +85,8 @@ h2 {
     color: #FFF;
 }
 
-.phase_rest {
+.phase_rest,
+.phase_circuit-rest {
     background-color: green;
     color: #FFF;
 }

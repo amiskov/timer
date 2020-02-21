@@ -6,10 +6,39 @@ body {
     font: 18px/1.4 sans-serif;
     margin: 0;
     padding: 0;
+    max-width: 1300px;
 }
 
 .wrapper {
     margin: auto;
+}
+
+.wrapper.paused::after {
+    z-index: 1;
+    content: "॥ Paused";
+    position: absolute;
+    width: 100%;
+    top: 0;
+    text-align: center;
+    font-weight: bold;
+    white-space: nowrap;
+    background: yellow;
+}
+
+.wrapper.paused .phase {
+    animation: paused-blink 1s infinite;
+}
+
+@keyframes paused-blink {
+    0% {
+        /* background-color: inherit; */
+    }
+    50% {
+        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4AWNhaAAAAI8AhXFH0h4AAAAASUVORK5CYII=);
+    }
+    100% {
+        /* background-color: inherit; */
+    }
 }
 
 h2 {
@@ -17,10 +46,31 @@ h2 {
 }
 
 .countdown {
+    font-size: 7em;
     text-align: center;
     font-weight: bold;
-    font-size: 4em;
-    line-height: 4em;
+    line-height: 80vh;
+    height: 100vh;
+}
+
+.countdown_tick {
+    animation: countdown-blink 1s infinite;
+}
+
+.countdown_go {
+    background: yellow;
+}
+
+@keyframes countdown-blink {
+    0% {
+        background-color: yellow;
+    }
+    10% {
+        background-color: yellow;
+    }
+    100% {
+        background-color: white;
+    }
 }
 
 .phase {
@@ -28,11 +78,9 @@ h2 {
     height: 100vh;
     box-sizing: border-box;
     padding: 2em;
-    border: 2px solid gray;
 }
 
 .phase_work {
-    border-color: red;
     background-color: red;
     color: #FFF;
 }
@@ -48,35 +96,20 @@ label {
     vertical-align: middle;
 }
 
-section {
-    text-align: center;
+section .row {
+    padding: 1em 2em;
 }
 
-section.phases {
-    padding-top: 2em;
+section.phases label {
+    min-width: 2.7em;
 }
 
 section.rounds {
     background: #EEE;
-    padding-bottom: 2em;
-    margin-bottom: 1em;
 }
 
 section.repeats {
-    padding: 0 0 2em;
     background: #DDD;
-}
-
-section.phases div {
-    display: inline-block;
-}
-
-section.rounds>.row, section.repeats>.row {
-    padding-top: 1em;
-}
-
-.row {
-    padding: .5em 0;
 }
 
 .row label {
@@ -86,53 +119,78 @@ section.rounds>.row, section.repeats>.row {
 .row select {
     font-size: 1.2em;
     font-weight: bold;
+    min-width: 5em;
+}
+
+.row_go {
+    padding: 2em;
 }
 
 .row_work {
-    color: red;
-}
-
-.row_work select {
-    color: red
+    background: red;
+    color: #FFF;
 }
 
 .row_rest {
-    color: green;
+    background: green;
+    color: #FFF;
 }
 
-.row_rest select {
-    color: green;
+.row_circuit label {
+    min-width: 4.3em;
 }
 
-.row_repeat div {
+.row_circuit .row__inner {
     margin-bottom: .5em;
 }
 
 .row_btn {
-    padding-top: 2em;
-    text-align: center;
     border-bottom: none;
 }
 
 .row_pause {
+    margin: 2em 0 1em;
     text-align: left;
 }
 
 .btn {
     font-size: 2em;
+    box-shadow: 2px 2px 0 black;
 }
 
 .btn_go {
     border: 3px solid #000;
+    width: 100%;
     border-radius: 5px;
     background: none;
 }
 
-.btn_pause {
-    border: 3px solid #FFF;
-    color: #FFF;
+.btn_ok {
+    border: 3px solid #999;
+    color: #999;
     border-radius: 5px;
     background: none;
+    box-shadow: 2px 2px 0 #999;
+}
+
+.btn_pause, .btn_continue {
+    border: 3px solid #FFF;
+    color: #FFF;
+    box-shadow: 2px 2px 0 #FFF;
+    border-radius: 5px;
+    background: none;
+}
+
+.btn_pause::before {
+    content: "॥";
+    position: absolute;
+    margin: -.15em 0 0 -.85em;
+}
+
+.btn_continue {
+    color: yellow;
+    border-color: yellow;
+    box-shadow: 2px 2px 0 yellow;
 }
 
 select {
@@ -156,20 +214,10 @@ button {
 }
 
 .final-image img {
+    position: absolute;
+    bottom: 0;
+    right: 0;
     max-width: 100%;
-    animation: swing .7s infinite;
-}
-
-@keyframes swing {
-    0% {
-        transform: rotate(5deg);
-    }
-    50% {
-        transform: rotate(-5deg);
-    }
-    100% {
-        transform: rotate(5deg);
-    }
 }
 
 .phase-title {
@@ -177,11 +225,15 @@ button {
 }
 
 .round {
+    margin: 1em 0 0;
+    padding: 0;
     font-size: 2em;
     font-weight: bold;
 }
 
 .circuit {
+    margin: 0;
+    padding: 0;
     font-size: 1.68em;
     font-weight: bold;
 }
@@ -239,4 +291,22 @@ button {
     border-radius: 5px;
     display: inline-block;
     margin-left: .5em;
+}
+
+.btn_cancel {
+    /* font-size: 1em; */
+    background: none;
+    box-shadow: none;
+    border: none;
+    color: #FFF;
+    padding-left: .7em;
+    text-align: left;
+    font-weight: normal;
+    position: relative;
+}
+.btn_cancel::before {
+    position: absolute;
+    left: 0;
+    margin: -2px;
+    content: "×"
 }

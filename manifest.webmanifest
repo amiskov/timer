@@ -1,14 +1,15 @@
 {
     "background_color": "purple",
     "description": "Interval timer.",
+    "display": "standalone",
     "icons": [
       {
-        "src": "/timer/static/timer-512.png",
-        "sizes": "192x192",
+        "src": "/static/timer.png",
+        "sizes": "150x150",
         "type": "image/png"
       }
     ],
     "name": "Interval Timer",
     "short_name": "Timer",
-    "start_url": "/timer/index.html"
+    "start_url": "/index.html"
   }

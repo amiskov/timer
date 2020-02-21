@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, selected, src, style, type_)
+import Html.Attributes exposing (class, disabled, selected, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Time
 
@@ -16,9 +16,7 @@ port resumeAudioContext : () -> Cmd msg
 port play : String -> Cmd msg
 
 
-type Sound
-    = StartWork
-    | StartRest
+port stopAllSounds : () -> Cmd msg
 
 
 main =
@@ -49,7 +47,7 @@ type Step
     = Setup
     | Countdown
     | Running Phase
-    | Paused Step
+    | Paused Phase
     | Finished
 
 
@@ -62,19 +60,24 @@ type alias Model =
     }
 
 
+initialCountdown : Int
+initialCountdown =
+    0
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { step = Setup
       , timer =
-            { rounds = 2
-            , work = 3
-            , rest = 3
+            { rounds = 1
+            , work = 5
+            , rest = 5
             , circuits = 1
             , circuitRest = 0
             }
       , currentRound = 1
       , currentCircuit = 1
-      , countdown = 0
+      , countdown = initialCountdown
       }
     , Cmd.batch [ loadSample "alert", loadSample "bell", loadSample "final" ]
     )
@@ -83,6 +86,7 @@ init _ =
 type Msg
     = Tick Time.Posix
     | RunTimer
+    | Cancel
     | TogglePause
     | ShowCountdown
     | UpdateCircuits String
@@ -100,21 +104,30 @@ update msg model =
             , Cmd.none
             )
 
+        Cancel ->
+            ( { model
+                | step = Setup
+                , countdown = initialCountdown
+                , currentRound = 1
+                , currentCircuit = 1
+              }
+            , stopAllSounds ()
+            )
+
         TogglePause ->
-            let
-                _ =
-                    Debug.log "paused" model.step
-            in
             case model.step of
-                Paused s ->
-                    ( { model | step = s }
+                Paused phase ->
+                    ( { model | step = Running phase }
+                    , Cmd.none
+                    )
+
+                Running phase ->
+                    ( { model | step = Paused phase }
                     , Cmd.none
                     )
 
                 _ ->
-                    ( { model | step = Paused model.step }
-                    , Cmd.none
-                    )
+                    ( model, Cmd.none )
 
         ShowCountdown ->
             ( { model | step = Countdown }
@@ -270,11 +283,20 @@ view model =
             Finished ->
                 viewFinished model
 
-            Paused _ ->
-                viewPaused model
+            Paused phase ->
+                viewTimer model phase
 
             Countdown ->
-                div [ class "countdown" ]
+                div
+                    [ class "countdown"
+                    , class
+                        (if model.countdown > 0 then
+                            "countdown_tick"
+
+                         else
+                            "countdown_go"
+                        )
+                    ]
                     (if model.countdown > 0 then
                         [ text (String.fromInt model.countdown) ]
 
@@ -283,30 +305,36 @@ view model =
                     )
 
             Running phase ->
-                viewRunningTimer model phase
+                viewTimer model phase
         ]
 
 
 viewFinished model =
-    div [class "final"]
+    div [ class "final" ]
         [ h1 [] [ text "Well Done!" ]
+        , div [ class "row row_btn row_btn-ok" ]
+            [ button
+                [ class "btn btn_ok"
+                , onClick Cancel
+                ]
+                [ text "← Back" ]
+            ]
         , div [ class "final-image" ]
-            [ img [ src "./static/img/arny_thumbs_up.jpg" ] []
+            [ img [ src "./static/img/arny_thumbs_up.png" ] []
             ]
         ]
 
 
-viewPaused model =
-    div [ class "paused" ]
-        [ h2 [] [ text "Paused" ]
-        , div [ class "row row_btn row_btn-paused" ]
-            [ button [ onClick TogglePause ] [ text "Continue" ]
-            ]
-        ]
-
-
-viewRunningTimer model phase =
+viewTimer model phase =
     let
+        isPaused =
+            case model.step of
+                Paused _ ->
+                    True
+
+                _ ->
+                    False
+
         ( phaseText, phaseTime ) =
             case phase of
                 Work t ->
@@ -319,7 +347,15 @@ viewRunningTimer model phase =
                     ( "Big Rest", t )
     in
     div
-        [ class "wrapper" ]
+        [ class "wrapper"
+        , class
+            (if isPaused then
+                "paused"
+
+             else
+                ""
+            )
+        ]
         [ div
             [ class "phase"
             , class ("phase_" ++ String.toLower phaseText)
@@ -350,9 +386,30 @@ viewRunningTimer model phase =
             , div [ class "row row_btn row_pause" ]
                 [ button
                     [ onClick TogglePause
-                    , class "btn btn_pause"
+                    , class "btn"
+                    , class
+                        (if isPaused then
+                            "btn_continue"
+
+                         else
+                            "btn_pause"
+                        )
                     ]
-                    [ text "॥ Pause" ]
+                    [ text
+                        (if isPaused then
+                            "Continue"
+
+                         else
+                            "Pause"
+                        )
+                    ]
+                ]
+            , div [ class "row row_btn row_cancel" ]
+                [ button
+                    [ onClick Cancel
+                    , class "btn btn_cancel"
+                    ]
+                    [ text "Cancel" ]
                 ]
             ]
         ]
@@ -366,24 +423,38 @@ viewTimerForm { rounds, work, rest, circuits, circuitRest } =
                 [ section [ class "phases" ]
                     [ div [ class "row row_work" ]
                         [ label [] [ text "Work" ]
-                        , select [ onInput UpdateWork ] (viewRenderOptions 1 240 work)
+                        , select [ onInput UpdateWork ] (viewRenderOptions 1 240 5 work)
                         ]
                     , div [ class "row row_rest" ]
                         [ label [] [ text "Rest" ]
-                        , select [ onInput UpdateRest ] (viewRenderOptions 1 120 rest)
+                        , select [ onInput UpdateRest ] (viewRenderOptions 1 120 5 rest)
                         ]
                     ]
                 , div [ class "row row_rounds" ]
                     [ label [] [ text "Rounds" ]
-                    , select [ onInput UpdateRoundsQuantity ] (viewRenderOptions 1 20 rounds)
+                    , select [ onInput UpdateRoundsQuantity ] (viewRenderOptions 1 20 1 rounds)
                     ]
                 ]
-            , div [ class "row row_repeat" ]
-                [ label [] [ text "Circuits" ]
-                , select [ onInput UpdateCircuits ] (viewRenderOptions 1 10 circuits)
-                , label [ class "label_repeat" ] [ text "with" ]
-                , select [ onInput UpdateCircuitRest ] (viewRenderOptions 0 200 circuitRest)
-                , label [ class "label_repeat" ] [ text "rest" ]
+            , div [ class "row row_circuit" ]
+                [ div [ class "row__inner" ]
+                    [ label [] [ text "Circuits" ]
+                    , select [ onInput UpdateCircuits ] (viewRenderOptions 1 10 1 circuits)
+                    ]
+                , div [ class "row__inner" ]
+                    [ label [ class "label_repeat-with" ] [ text "with rest" ]
+                    , if circuits <= 1 then
+                        select
+                            [ onInput UpdateCircuitRest
+                            , disabled True
+                            ]
+                            [ option [] [ text "0" ] ]
+
+                      else
+                        select
+                            [ onInput UpdateCircuitRest
+                            ]
+                            (viewRenderOptions 0 240 5 circuitRest)
+                    ]
                 ]
             ]
         , div [ class "row row_btn row_go" ]
@@ -391,54 +462,32 @@ viewTimerForm { rounds, work, rest, circuits, circuitRest } =
                 [ type_ "submit"
                 , class "btn btn_go"
                 ]
-                [ text "Go!" ]
+                [ text "Get it done!" ]
             ]
-
-        -- , div [ class "dots" ]
-        --     (drawCircuit (drawRoundDots rounds work rest) circuits circuitRest)
         ]
 
 
-drawCircuit roundDots c r =
-    List.map
-        (\_ ->
-            div [ class "circuit-with-rest" ]
-                [ div [ class "circuit-rounds" ]
-                    roundDots
-                , div
-                    [ class "circuit-rest"
-                    , class "dot"
-                    , class "rest"
-                    , style "width" (String.fromInt r ++ "px")
-                    ]
-                    []
+rangeWithStep : Int -> Int -> Int -> List Int
+rangeWithStep start end step =
+    let
+        stepper n acc =
+            if remainderBy step n == 0 then
+                List.append acc [ n ]
+
+            else
+                acc
+    in
+    List.foldl stepper [] (List.range start end)
+
+
+viewRenderOptions start end step selectedOptionNum =
+    let
+        renderOption n =
+            option
+                [ selected (selectedOptionNum == n)
+                , value (String.fromInt n)
                 ]
-        )
-        (List.range 1 c)
-
-
-drawRoundDots n w r =
-    List.map
-        (\_ ->
-            div [ class "round-scheme" ]
-                [ div
-                    [ class "dot"
-                    , class "work"
-                    , style "width" (String.fromInt w ++ "px")
-                    ]
-                    []
-                , div
-                    [ class "dot"
-                    , class "rest"
-                    , style "width" (String.fromInt r ++ "px")
-                    ]
-                    []
+                [ text (String.fromInt n)
                 ]
-        )
-        (List.range 1 n)
-
-
-viewRenderOptions start end selectedOptionNum =
-    List.map
-        (\n -> option [ selected (selectedOptionNum == n) ] [ text (String.fromInt n) ])
-        (List.range start end)
+    in
+    List.map renderOption (rangeWithStep start end step)

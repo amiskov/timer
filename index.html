@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Interval Timer</title>
+    <link rel="apple-touch-icon" href="./static/timer.png">
     <link rel="stylesheet" href="./static/style.css">
     <link rel="manifest" href="./manifest.webmanifest">
 </head>
@@ -27,7 +28,7 @@
     <!-- <script src="timer.min.js"></script> -->
     <script>
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioContext();
+        let audioContext = new AudioContext();
 
         audioContext.onstatechange = function () {
             console.log("audioContext state changed:", this.state);
@@ -69,6 +70,11 @@
             source.buffer = samples[filename];
             source.connect(audioContext.destination);
             source.start(0);
+        });
+
+        app.ports.stopAllSounds.subscribe(function () {
+            audioContext.close();
+            audioContext = new AudioContext();
         });
     </script>
 </body>

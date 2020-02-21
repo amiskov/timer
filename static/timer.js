@@ -5192,16 +5192,17 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$Setup = {$: 'Setup'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $author$project$Main$initialCountdown = 0;
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$loadSample = _Platform_outgoingPort('loadSample', $elm$json$Json$Encode$string);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
-			countdown: 0,
+			countdown: $author$project$Main$initialCountdown,
 			currentCircuit: 1,
 			currentRound: 1,
 			step: $author$project$Main$Setup,
-			timer: {circuitRest: 0, circuits: 1, rest: 3, rounds: 2, work: 3}
+			timer: {circuitRest: 0, circuits: 1, rest: 5, rounds: 1, work: 5}
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
@@ -5659,12 +5660,16 @@ var $author$project$Main$Running = function (a) {
 var $author$project$Main$Work = function (a) {
 	return {$: 'Work', a: a};
 };
-var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$play = _Platform_outgoingPort('play', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$null = _Json_encodeNull;
 var $author$project$Main$resumeAudioContext = _Platform_outgoingPort(
 	'resumeAudioContext',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
+var $author$project$Main$stopAllSounds = _Platform_outgoingPort(
+	'stopAllSounds',
 	function ($) {
 		return $elm$json$Json$Encode$null;
 	});
@@ -5697,24 +5702,35 @@ var $author$project$Main$update = F2(
 								$author$project$Main$Work(model.timer.work))
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'Cancel':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{countdown: $author$project$Main$initialCountdown, currentCircuit: 1, currentRound: 1, step: $author$project$Main$Setup}),
+					$author$project$Main$stopAllSounds(_Utils_Tuple0));
 			case 'TogglePause':
-				var _v1 = A2($elm$core$Debug$log, 'paused', model.step);
-				var _v2 = model.step;
-				if (_v2.$ === 'Paused') {
-					var s = _v2.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{step: s}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								step: $author$project$Main$Paused(model.step)
-							}),
-						$elm$core$Platform$Cmd$none);
+				var _v1 = model.step;
+				switch (_v1.$) {
+					case 'Paused':
+						var phase = _v1.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									step: $author$project$Main$Running(phase)
+								}),
+							$elm$core$Platform$Cmd$none);
+					case 'Running':
+						var phase = _v1.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									step: $author$project$Main$Paused(phase)
+								}),
+							$elm$core$Platform$Cmd$none);
+					default:
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 'ShowCountdown':
 				return _Utils_Tuple2(
@@ -5798,8 +5814,8 @@ var $author$project$Main$update = F2(
 						}),
 					$elm$core$Platform$Cmd$none);
 			default:
-				var _v3 = model.step;
-				switch (_v3.$) {
+				var _v2 = model.step;
+				switch (_v2.$) {
 					case 'Countdown':
 						return (model.countdown <= 0) ? _Utils_Tuple2(
 							_Utils_update(
@@ -5814,7 +5830,7 @@ var $author$project$Main$update = F2(
 								{countdown: model.countdown - 1}),
 							$elm$core$Platform$Cmd$none);
 					case 'Running':
-						var phase = _v3.a;
+						var phase = _v2.a;
 						switch (phase.$) {
 							case 'Work':
 								var t = phase.a;
@@ -5902,8 +5918,27 @@ var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$Cancel = {$: 'Cancel'};
+var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -5930,6 +5965,26 @@ var $author$project$Main$viewFinished = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
+						$elm$html$Html$Attributes$class('row row_btn row_btn-ok')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('btn btn_ok'),
+								$elm$html$Html$Events$onClick($author$project$Main$Cancel)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('← Back')
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
 						$elm$html$Html$Attributes$class('final-image')
 					]),
 				_List_fromArray(
@@ -5938,74 +5993,27 @@ var $author$project$Main$viewFinished = function (model) {
 						$elm$html$Html$img,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$src('./static/img/arny_thumbs_up.jpg')
+								$elm$html$Html$Attributes$src('./static/img/arny_thumbs_up.png')
 							]),
 						_List_Nil)
 					]))
 			]));
 };
 var $author$project$Main$TogglePause = {$: 'TogglePause'};
-var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$Main$viewPaused = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('paused')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h2,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Paused')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('row row_btn row_btn-paused')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick($author$project$Main$TogglePause)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Continue')
-							]))
-					]))
-			]));
-};
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$s = _VirtualDom_node('s');
 var $elm$core$String$toLower = _String_toLower;
-var $author$project$Main$viewRunningTimer = F2(
+var $author$project$Main$viewTimer = F2(
 	function (model, phase) {
+		var isPaused = function () {
+			var _v2 = model.step;
+			if (_v2.$ === 'Paused') {
+				return true;
+			} else {
+				return false;
+			}
+		}();
 		var _v0 = function () {
 			switch (phase.$) {
 				case 'Work':
@@ -6025,7 +6033,9 @@ var $author$project$Main$viewRunningTimer = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('wrapper')
+					$elm$html$Html$Attributes$class('wrapper'),
+					$elm$html$Html$Attributes$class(
+					isPaused ? 'paused' : '')
 				]),
 			_List_fromArray(
 				[
@@ -6091,11 +6101,34 @@ var $author$project$Main$viewRunningTimer = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$Events$onClick($author$project$Main$TogglePause),
-											$elm$html$Html$Attributes$class('btn btn_pause')
+											$elm$html$Html$Attributes$class('btn'),
+											$elm$html$Html$Attributes$class(
+											isPaused ? 'btn_continue' : 'btn_pause')
 										]),
 									_List_fromArray(
 										[
-											$elm$html$Html$text('॥ Pause')
+											$elm$html$Html$text(
+											isPaused ? 'Continue' : 'Pause')
+										]))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('row row_btn row_cancel')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$button,
+									_List_fromArray(
+										[
+											$elm$html$Html$Events$onClick($author$project$Main$Cancel),
+											$elm$html$Html$Attributes$class('btn btn_cancel')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('Cancel')
 										]))
 								]))
 						]))
@@ -6117,6 +6150,15 @@ var $author$project$Main$UpdateRoundsQuantity = function (a) {
 var $author$project$Main$UpdateWork = function (a) {
 	return {$: 'UpdateWork', a: a};
 };
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$html$Html$form = _VirtualDom_node('form');
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$Events$alwaysStop = function (x) {
@@ -6174,38 +6216,58 @@ var $elm$html$Html$Events$onSubmit = function (msg) {
 			$elm$html$Html$Events$alwaysPreventDefault,
 			$elm$json$Json$Decode$succeed(msg)));
 };
+var $elm$html$Html$option = _VirtualDom_node('option');
 var $elm$html$Html$section = _VirtualDom_node('section');
 var $elm$html$Html$select = _VirtualDom_node('select');
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
-var $elm$html$Html$option = _VirtualDom_node('option');
-var $elm$json$Json$Encode$bool = _Json_wrap;
-var $elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$bool(bool));
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $author$project$Main$rangeWithStep = F3(
+	function (start, end, step) {
+		var stepper = F2(
+			function (n, acc) {
+				return (!(n % step)) ? A2(
+					$elm$core$List$append,
+					acc,
+					_List_fromArray(
+						[n])) : acc;
+			});
+		return A3(
+			$elm$core$List$foldl,
+			stepper,
+			_List_Nil,
+			A2($elm$core$List$range, start, end));
 	});
 var $elm$html$Html$Attributes$selected = $elm$html$Html$Attributes$boolProperty('selected');
-var $author$project$Main$viewRenderOptions = F3(
-	function (start, end, selectedOptionNum) {
+var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Main$viewRenderOptions = F4(
+	function (start, end, step, selectedOptionNum) {
+		var renderOption = function (n) {
+			return A2(
+				$elm$html$Html$option,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$selected(
+						_Utils_eq(selectedOptionNum, n)),
+						$elm$html$Html$Attributes$value(
+						$elm$core$String$fromInt(n))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						$elm$core$String$fromInt(n))
+					]));
+		};
 		return A2(
 			$elm$core$List$map,
-			function (n) {
-				return A2(
-					$elm$html$Html$option,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$selected(
-							_Utils_eq(selectedOptionNum, n))
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							$elm$core$String$fromInt(n))
-						]));
-			},
-			A2($elm$core$List$range, start, end));
+			renderOption,
+			A3($author$project$Main$rangeWithStep, start, end, step));
 	});
 var $author$project$Main$viewTimerForm = function (_v0) {
 	var rounds = _v0.rounds;
@@ -6266,7 +6328,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 													[
 														$elm$html$Html$Events$onInput($author$project$Main$UpdateWork)
 													]),
-												A3($author$project$Main$viewRenderOptions, 1, 240, work))
+												A4($author$project$Main$viewRenderOptions, 1, 240, 5, work))
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -6289,7 +6351,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 													[
 														$elm$html$Html$Events$onInput($author$project$Main$UpdateRest)
 													]),
-												A3($author$project$Main$viewRenderOptions, 1, 120, rest))
+												A4($author$project$Main$viewRenderOptions, 1, 120, 5, rest))
 											]))
 									])),
 								A2(
@@ -6313,57 +6375,81 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 											[
 												$elm$html$Html$Events$onInput($author$project$Main$UpdateRoundsQuantity)
 											]),
-										A3($author$project$Main$viewRenderOptions, 1, 20, rounds))
+										A4($author$project$Main$viewRenderOptions, 1, 20, 1, rounds))
 									]))
 							])),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('row row_repeat')
+								$elm$html$Html$Attributes$class('row row_circuit')
 							]),
 						_List_fromArray(
 							[
 								A2(
-								$elm$html$Html$label,
-								_List_Nil,
+								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Circuits')
+										$elm$html$Html$Attributes$class('row__inner')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Circuits')
+											])),
+										A2(
+										$elm$html$Html$select,
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuits)
+											]),
+										A4($author$project$Main$viewRenderOptions, 1, 10, 1, circuits))
 									])),
 								A2(
-								$elm$html$Html$select,
+								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuits)
-									]),
-								A3($author$project$Main$viewRenderOptions, 1, 10, circuits)),
-								A2(
-								$elm$html$Html$label,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('label_repeat')
+										$elm$html$Html$Attributes$class('row__inner')
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('with')
-									])),
-								A2(
-								$elm$html$Html$select,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuitRest)
-									]),
-								A3($author$project$Main$viewRenderOptions, 0, 200, circuitRest)),
-								A2(
-								$elm$html$Html$label,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('label_repeat')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('rest')
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('label_repeat-with')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('with rest')
+											])),
+										(circuits <= 1) ? A2(
+										$elm$html$Html$select,
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuitRest),
+												$elm$html$Html$Attributes$disabled(true)
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$option,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('0')
+													]))
+											])) : A2(
+										$elm$html$Html$select,
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onInput($author$project$Main$UpdateCircuitRest)
+											]),
+										A4($author$project$Main$viewRenderOptions, 0, 240, 5, circuitRest))
 									]))
 							]))
 					])),
@@ -6384,7 +6470,7 @@ var $author$project$Main$viewTimerForm = function (_v0) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Go!')
+								$elm$html$Html$text('Get it done!')
 							]))
 					]))
 			]));
@@ -6403,13 +6489,16 @@ var $author$project$Main$view = function (model) {
 					case 'Finished':
 						return $author$project$Main$viewFinished(model);
 					case 'Paused':
-						return $author$project$Main$viewPaused(model);
+						var phase = _v0.a;
+						return A2($author$project$Main$viewTimer, model, phase);
 					case 'Countdown':
 						return A2(
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$class('countdown')
+									$elm$html$Html$Attributes$class('countdown'),
+									$elm$html$Html$Attributes$class(
+									(model.countdown > 0) ? 'countdown_tick' : 'countdown_go')
 								]),
 							(model.countdown > 0) ? _List_fromArray(
 								[
@@ -6421,7 +6510,7 @@ var $author$project$Main$view = function (model) {
 								]));
 					default:
 						var phase = _v0.a;
-						return A2($author$project$Main$viewRunningTimer, model, phase);
+						return A2($author$project$Main$viewTimer, model, phase);
 				}
 			}()
 			]));

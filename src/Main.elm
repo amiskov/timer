@@ -70,8 +70,8 @@ init _ =
     ( { step = Setup
       , timer =
             { exercises = 10
-            , work = 45
-            , rest = 15
+            , work = 5
+            , rest = 5
             , rounds = 3
             , roundRest = 120
             }
@@ -103,10 +103,10 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ timer, step, countdown, currentExercise, currentRound } as model) =
     case msg of
         RunTimer ->
-            ( { model | step = Running (Work model.timer.work) }
+            ( { model | step = Running (Work timer.work) }
             , Cmd.none
             )
 
@@ -121,7 +121,7 @@ update msg model =
             )
 
         TogglePause ->
-            case model.step of
+            case step of
                 Paused phase ->
                     ( { model | step = Running phase }
                     , Cmd.none
@@ -145,7 +145,7 @@ update msg model =
                 upd t v =
                     { t | exercises = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd r }
+            ( { model | timer = updateTimerSetting timer upd r }
             , Cmd.none
             )
 
@@ -154,7 +154,7 @@ update msg model =
                 upd t v =
                     { t | rest = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd newRest }
+            ( { model | timer = updateTimerSetting timer upd newRest }
             , Cmd.none
             )
 
@@ -163,7 +163,7 @@ update msg model =
                 upd t v =
                     { t | work = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd newWork }
+            ( { model | timer = updateTimerSetting timer upd newWork }
             , Cmd.none
             )
 
@@ -172,7 +172,7 @@ update msg model =
                 upd t v =
                     { t | rounds = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd newRounds }
+            ( { model | timer = updateTimerSetting timer upd newRounds }
             , Cmd.none
             )
 
@@ -181,87 +181,102 @@ update msg model =
                 upd t v =
                     { t | roundRest = v }
             in
-            ( { model | timer = updateTimerSetting model.timer upd newValue }
+            ( { model | timer = updateTimerSetting timer upd newValue }
             , Cmd.none
             )
 
         Tick _ ->
-            case model.step of
+            case step of
                 Countdown ->
-                    if model.countdown <= 0 then
-                        ( { model | step = Running (Work model.timer.work) }
+                    if countdown == 0 then
+                        ( { model | step = Running (Work timer.work) }
                         , play "bell"
                         )
 
-                    else if model.countdown > 1 then
-                        ( { model | countdown = model.countdown - 1 }
-                        , play "count_tick"
-                        )
-
                     else
-                        ( { model | countdown = model.countdown - 1 }
-                        , play "count_beep"
+                        ( { model | countdown = countdown - 1 }
+                        , silenceOrCountdown countdown
                         )
 
                 Running phase ->
                     case phase of
                         Work t ->
-                            case t of
-                                0 ->
-                                    if model.currentExercise == model.timer.exercises then
-                                        if model.currentRound == model.timer.rounds then
-                                            ( { model | step = Finished }
-                                            , play "final"
-                                            )
+                            let
+                                isLastExercise =
+                                    currentExercise == timer.exercises
 
-                                        else
-                                            ( { model
-                                                | step = Running (RestBetweenRounds model.timer.roundRest)
-                                              }
-                                            , play "alert"
-                                            )
+                                isLastRound =
+                                    currentRound == timer.rounds
+                            in
+                            case ( t, isLastExercise, isLastRound ) of
+                                ( 0, True, True ) ->
+                                    ( { model | step = Finished }
+                                    , play "final"
+                                    )
 
-                                    else
-                                        ( { model | step = Running (Rest model.timer.rest) }
-                                        , play "alert"
-                                        )
+                                ( 0, True, _ ) ->
+                                    ( { model
+                                        | step = Running (RestBetweenRounds timer.roundRest)
+                                      }
+                                    , play "alert"
+                                    )
+
+                                ( 0, _, _ ) ->
+                                    ( { model | step = Running (Rest timer.rest) }
+                                    , play "alert"
+                                    )
 
                                 _ ->
                                     ( { model | step = Running (Work (t - 1)) }
-                                    , Cmd.none
+                                    , silenceOrCountdown t
                                     )
 
                         Rest t ->
                             if t == 0 then
                                 ( { model
-                                    | step = Running (Work model.timer.work)
-                                    , currentExercise = model.currentExercise + 1
+                                    | step = Running (Work timer.work)
+                                    , currentExercise = currentExercise + 1
                                   }
                                 , play "bell"
                                 )
 
                             else
-                                ( { model | step = Running (Rest (t - 1)) }, Cmd.none )
+                                ( { model | step = Running (Rest (t - 1)) }
+                                , silenceOrCountdown t
+                                )
 
                         RestBetweenRounds t ->
                             if t == 0 then
                                 ( { model
-                                    | step = Running (Work model.timer.work)
+                                    | step = Running (Work timer.work)
                                     , currentExercise = 1
-                                    , currentRound = model.currentRound + 1
+                                    , currentRound = currentRound + 1
                                   }
                                 , play "bell"
                                 )
 
                             else
                                 ( { model | step = Running (RestBetweenRounds (t - 1)) }
-                                , Cmd.none
+                                , silenceOrCountdown t
                                 )
 
                 _ ->
                     ( model, Cmd.none )
 
 
+silenceOrCountdown : Int -> Cmd msg
+silenceOrCountdown t =
+    if t == 1 then
+        play "count_beep"
+
+    else if t <= 4 then
+        play "count_tick"
+
+    else
+        Cmd.none
+
+
+updateTimerSetting : Timer -> (Timer -> Int -> Timer) -> String -> Timer
 updateTimerSetting timer updater newValue =
     let
         newVal =
@@ -271,8 +286,8 @@ updateTimerSetting timer updater newValue =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    case model.step of
+subscriptions { step } =
+    case step of
         Running _ ->
             Time.every 1000 Tick
 
@@ -292,7 +307,7 @@ view model =
                 viewTimerForm model.timer
 
             Finished ->
-                viewFinished model
+                viewFinished
 
             Paused phase ->
                 viewTimer model phase
@@ -320,7 +335,7 @@ view model =
         ]
 
 
-viewFinished model =
+viewFinished =
     div [ class "final" ]
         [ h1 [] [ text "Well Done!" ]
         , div [ class "row row_btn row_btn-ok" ]
@@ -336,10 +351,10 @@ viewFinished model =
         ]
 
 
-viewTimer model phase =
+viewTimer { step, timer, currentRound, currentExercise } phase =
     let
         isPaused =
-            case model.step of
+            case step of
                 Paused _ ->
                     True
 
@@ -381,17 +396,17 @@ viewTimer model phase =
             , p [ class "exercise" ]
                 [ text
                     ("Exercise "
-                        ++ String.fromInt model.currentExercise
+                        ++ String.fromInt currentExercise
                         ++ " of "
-                        ++ String.fromInt model.timer.exercises
+                        ++ String.fromInt timer.exercises
                     )
                 ]
             , p [ class "round" ]
                 [ text
                     ("Round "
-                        ++ String.fromInt model.currentRound
+                        ++ String.fromInt currentRound
                         ++ " of "
-                        ++ String.fromInt model.timer.rounds
+                        ++ String.fromInt timer.rounds
                     )
                 ]
             , div [ class "row row_btn row_pause" ]

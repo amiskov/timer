@@ -5202,7 +5202,7 @@ var $author$project$Main$init = function (_v0) {
 			currentExercise: 1,
 			currentRound: 1,
 			step: $author$project$Main$Setup,
-			timer: {exercises: 10, rest: 15, roundRest: 120, rounds: 3, work: 45}
+			timer: {exercises: 10, rest: 5, roundRest: 120, rounds: 3, work: 5}
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
@@ -5634,9 +5634,9 @@ var $elm$time$Time$every = F2(
 	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Main$subscriptions = function (model) {
-	var _v0 = model.step;
-	switch (_v0.$) {
+var $author$project$Main$subscriptions = function (_v0) {
+	var step = _v0.step;
+	switch (step.$) {
 		case 'Running':
 			return A2($elm$time$Time$every, 1000, $author$project$Main$Tick);
 		case 'Countdown':
@@ -5670,6 +5670,9 @@ var $author$project$Main$resumeAudioContext = _Platform_outgoingPort(
 	function ($) {
 		return $elm$json$Json$Encode$null;
 	});
+var $author$project$Main$silenceOrCountdown = function (t) {
+	return (t === 1) ? $author$project$Main$play('count_beep') : ((t <= 4) ? $author$project$Main$play('count_tick') : $elm$core$Platform$Cmd$none);
+};
 var $author$project$Main$stopAllSounds = _Platform_outgoingPort(
 	'stopAllSounds',
 	function ($) {
@@ -5694,6 +5697,11 @@ var $author$project$Main$updateTimerSetting = F3(
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
+		var timer = model.timer;
+		var step = model.step;
+		var countdown = model.countdown;
+		var currentExercise = model.currentExercise;
+		var currentRound = model.currentRound;
 		switch (msg.$) {
 			case 'RunTimer':
 				return _Utils_Tuple2(
@@ -5701,7 +5709,7 @@ var $author$project$Main$update = F2(
 						model,
 						{
 							step: $author$project$Main$Running(
-								$author$project$Main$Work(model.timer.work))
+								$author$project$Main$Work(timer.work))
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'Cancel':
@@ -5711,10 +5719,9 @@ var $author$project$Main$update = F2(
 						{countdown: $author$project$Main$initialCountdown, currentExercise: 1, currentRound: 1, step: $author$project$Main$Setup}),
 					$author$project$Main$stopAllSounds(_Utils_Tuple0));
 			case 'TogglePause':
-				var _v1 = model.step;
-				switch (_v1.$) {
+				switch (step.$) {
 					case 'Paused':
-						var phase = _v1.a;
+						var phase = step.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -5723,7 +5730,7 @@ var $author$project$Main$update = F2(
 								}),
 							$elm$core$Platform$Cmd$none);
 					case 'Running':
-						var phase = _v1.a;
+						var phase = step.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -5757,7 +5764,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, r)
+							timer: A3($author$project$Main$updateTimerSetting, timer, upd, r)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'UpdateRest':
@@ -5772,7 +5779,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newRest)
+							timer: A3($author$project$Main$updateTimerSetting, timer, upd, newRest)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'UpdateWork':
@@ -5787,7 +5794,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newWork)
+							timer: A3($author$project$Main$updateTimerSetting, timer, upd, newWork)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'UpdateRounds':
@@ -5802,7 +5809,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newRounds)
+							timer: A3($author$project$Main$updateTimerSetting, timer, upd, newRounds)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'UpdateRoundRest':
@@ -5817,54 +5824,60 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							timer: A3($author$project$Main$updateTimerSetting, model.timer, upd, newValue)
+							timer: A3($author$project$Main$updateTimerSetting, timer, upd, newValue)
 						}),
 					$elm$core$Platform$Cmd$none);
 			default:
-				var _v2 = model.step;
-				switch (_v2.$) {
+				switch (step.$) {
 					case 'Countdown':
-						return (model.countdown <= 0) ? _Utils_Tuple2(
+						return (!countdown) ? _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
 									step: $author$project$Main$Running(
-										$author$project$Main$Work(model.timer.work))
+										$author$project$Main$Work(timer.work))
 								}),
-							$author$project$Main$play('bell')) : ((model.countdown > 1) ? _Utils_Tuple2(
+							$author$project$Main$play('bell')) : _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{countdown: model.countdown - 1}),
-							$author$project$Main$play('count_tick')) : _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{countdown: model.countdown - 1}),
-							$author$project$Main$play('count_beep')));
+								{countdown: countdown - 1}),
+							$author$project$Main$silenceOrCountdown(countdown));
 					case 'Running':
-						var phase = _v2.a;
+						var phase = step.a;
 						switch (phase.$) {
 							case 'Work':
 								var t = phase.a;
-								if (!t) {
-									return _Utils_eq(model.currentExercise, model.timer.exercises) ? (_Utils_eq(model.currentRound, model.timer.rounds) ? _Utils_Tuple2(
-										_Utils_update(
-											model,
-											{step: $author$project$Main$Finished}),
-										$author$project$Main$play('final')) : _Utils_Tuple2(
-										_Utils_update(
-											model,
-											{
-												step: $author$project$Main$Running(
-													$author$project$Main$RestBetweenRounds(model.timer.roundRest))
-											}),
-										$author$project$Main$play('alert'))) : _Utils_Tuple2(
-										_Utils_update(
-											model,
-											{
-												step: $author$project$Main$Running(
-													$author$project$Main$Rest(model.timer.rest))
-											}),
-										$author$project$Main$play('alert'));
+								var isLastRound = _Utils_eq(currentRound, timer.rounds);
+								var isLastExercise = _Utils_eq(currentExercise, timer.exercises);
+								var _v4 = _Utils_Tuple3(t, isLastExercise, isLastRound);
+								if (!_v4.a) {
+									if (_v4.b) {
+										if (_v4.c) {
+											return _Utils_Tuple2(
+												_Utils_update(
+													model,
+													{step: $author$project$Main$Finished}),
+												$author$project$Main$play('final'));
+										} else {
+											return _Utils_Tuple2(
+												_Utils_update(
+													model,
+													{
+														step: $author$project$Main$Running(
+															$author$project$Main$RestBetweenRounds(timer.roundRest))
+													}),
+												$author$project$Main$play('alert'));
+										}
+									} else {
+										return _Utils_Tuple2(
+											_Utils_update(
+												model,
+												{
+													step: $author$project$Main$Running(
+														$author$project$Main$Rest(timer.rest))
+												}),
+											$author$project$Main$play('alert'));
+									}
 								} else {
 									return _Utils_Tuple2(
 										_Utils_update(
@@ -5873,7 +5886,7 @@ var $author$project$Main$update = F2(
 												step: $author$project$Main$Running(
 													$author$project$Main$Work(t - 1))
 											}),
-										$elm$core$Platform$Cmd$none);
+										$author$project$Main$silenceOrCountdown(t));
 								}
 							case 'Rest':
 								var t = phase.a;
@@ -5881,9 +5894,9 @@ var $author$project$Main$update = F2(
 									_Utils_update(
 										model,
 										{
-											currentExercise: model.currentExercise + 1,
+											currentExercise: currentExercise + 1,
 											step: $author$project$Main$Running(
-												$author$project$Main$Work(model.timer.work))
+												$author$project$Main$Work(timer.work))
 										}),
 									$author$project$Main$play('bell')) : _Utils_Tuple2(
 									_Utils_update(
@@ -5892,7 +5905,7 @@ var $author$project$Main$update = F2(
 											step: $author$project$Main$Running(
 												$author$project$Main$Rest(t - 1))
 										}),
-									$elm$core$Platform$Cmd$none);
+									$author$project$Main$silenceOrCountdown(t));
 							default:
 								var t = phase.a;
 								return (!t) ? _Utils_Tuple2(
@@ -5900,9 +5913,9 @@ var $author$project$Main$update = F2(
 										model,
 										{
 											currentExercise: 1,
-											currentRound: model.currentRound + 1,
+											currentRound: currentRound + 1,
 											step: $author$project$Main$Running(
-												$author$project$Main$Work(model.timer.work))
+												$author$project$Main$Work(timer.work))
 										}),
 									$author$project$Main$play('bell')) : _Utils_Tuple2(
 									_Utils_update(
@@ -5911,7 +5924,7 @@ var $author$project$Main$update = F2(
 											step: $author$project$Main$Running(
 												$author$project$Main$RestBetweenRounds(t - 1))
 										}),
-									$elm$core$Platform$Cmd$none);
+									$author$project$Main$silenceOrCountdown(t));
 						}
 					default:
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -5956,60 +5969,58 @@ var $elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
-var $author$project$Main$viewFinished = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('final')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h1,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Well Done!')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('row row_btn row_btn-ok')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('btn btn_ok'),
-								$elm$html$Html$Events$onClick($author$project$Main$Cancel)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('← Back')
-							]))
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('final-image')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$img,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$src('./static/img/arny_thumbs_up.png')
-							]),
-						_List_Nil)
-					]))
-			]));
-};
+var $author$project$Main$viewFinished = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('final')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$h1,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Well Done!')
+				])),
+			A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('row row_btn row_btn-ok')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('btn btn_ok'),
+							$elm$html$Html$Events$onClick($author$project$Main$Cancel)
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('← Back')
+						]))
+				])),
+			A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('final-image')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$img,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$src('./static/img/arny_thumbs_up.png')
+						]),
+					_List_Nil)
+				]))
+		]));
 var $author$project$Main$TogglePause = {$: 'TogglePause'};
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$p = _VirtualDom_node('p');
@@ -6023,16 +6034,19 @@ var $elm$core$String$replace = F3(
 var $elm$html$Html$s = _VirtualDom_node('s');
 var $elm$core$String$toLower = _String_toLower;
 var $author$project$Main$viewTimer = F2(
-	function (model, phase) {
+	function (_v0, phase) {
+		var step = _v0.step;
+		var timer = _v0.timer;
+		var currentRound = _v0.currentRound;
+		var currentExercise = _v0.currentExercise;
 		var isPaused = function () {
-			var _v2 = model.step;
-			if (_v2.$ === 'Paused') {
+			if (step.$ === 'Paused') {
 				return true;
 			} else {
 				return false;
 			}
 		}();
-		var _v0 = function () {
+		var _v1 = function () {
 			switch (phase.$) {
 				case 'Work':
 					var t = phase.a;
@@ -6045,8 +6059,8 @@ var $author$project$Main$viewTimer = F2(
 					return _Utils_Tuple2('Round rest', t);
 			}
 		}();
-		var phaseText = _v0.a;
-		var phaseTime = _v0.b;
+		var phaseText = _v1.a;
+		var phaseTime = _v1.b;
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -6094,7 +6108,7 @@ var $author$project$Main$viewTimer = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									'Exercise ' + ($elm$core$String$fromInt(model.currentExercise) + (' of ' + $elm$core$String$fromInt(model.timer.exercises))))
+									'Exercise ' + ($elm$core$String$fromInt(currentExercise) + (' of ' + $elm$core$String$fromInt(timer.exercises))))
 								])),
 							A2(
 							$elm$html$Html$p,
@@ -6105,7 +6119,7 @@ var $author$project$Main$viewTimer = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									'Round ' + ($elm$core$String$fromInt(model.currentRound) + (' of ' + $elm$core$String$fromInt(model.timer.rounds))))
+									'Round ' + ($elm$core$String$fromInt(currentRound) + (' of ' + $elm$core$String$fromInt(timer.rounds))))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -6506,7 +6520,7 @@ var $author$project$Main$view = function (model) {
 					case 'Setup':
 						return $author$project$Main$viewTimerForm(model.timer);
 					case 'Finished':
-						return $author$project$Main$viewFinished(model);
+						return $author$project$Main$viewFinished;
 					case 'Paused':
 						var phase = _v0.a;
 						return A2($author$project$Main$viewTimer, model, phase);

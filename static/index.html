@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Interval Timer</title>
-    <link rel="apple-touch-icon" href="./static/timer.png">
-    <link rel="stylesheet" href="./static/style.css">
+    <link rel="apple-touch-icon" href="./timer.png">
+    <link rel="stylesheet" href="./style.css">
     <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
 </head>
 
@@ -24,7 +24,7 @@
         // }
     </script>
 
-    <script src="./static/timer.js"></script>
+    <script src="./timer.js"></script>
     <script>
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioContext = new AudioContext();
@@ -41,7 +41,7 @@
 
         app.ports.loadSample.subscribe(filename => {
             const key = filename;
-            const url = `./static/sounds/${filename}.mp3`;
+            const url = `./sounds/${filename}.mp3`;
 
             if (samples[key] == null) {
                 window.fetch(url)

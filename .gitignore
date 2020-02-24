@@ -3,3 +3,4 @@ elm-stuff
 src/Temp.elm
 static/sounds/run_away.mp3
 static/sounds/appl.mp3
+static/timer.js

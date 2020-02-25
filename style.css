@@ -6,9 +6,13 @@ body {
     font: 18px/1.4 sans-serif;
     margin: 0;
     padding: 0;
-    max-width: 1300px;
 }
 
+.timer {
+    max-width: 800px;
+    margin: auto;
+    height: 100vh;
+}
 .wrapper {
     margin: auto;
 }
@@ -85,8 +89,7 @@ h2 {
     color: #FFF;
 }
 
-.phase_rest,
-.phase_round-rest {
+.phase_rest, .phase_round-rest {
     background-color: green;
     color: #FFF;
 }
@@ -105,12 +108,12 @@ section.phases label {
     min-width: 2.7em;
 }
 
-section.rounds {
-    background: #EEE;
+section.exercises {
+    background: #DDD;
 }
 
 section.repeats {
-    background: #DDD;
+    background: #EEE;
 }
 
 .row label {
@@ -156,6 +159,8 @@ section.repeats {
 
 .btn {
     font-size: 2em;
+    cursor: pointer;
+    background: #FFF;
     box-shadow: 2px 2px 0 black;
 }
 
@@ -163,7 +168,10 @@ section.repeats {
     border: 3px solid #000;
     width: 100%;
     border-radius: 5px;
-    background: none;
+}
+
+.btn_go:hover {
+    background: yellow;
 }
 
 .btn_ok {
@@ -305,6 +313,7 @@ button {
     font-weight: normal;
     position: relative;
 }
+
 .btn_cancel::before {
     position: absolute;
     left: 0;

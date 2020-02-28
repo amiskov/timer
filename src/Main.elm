@@ -346,7 +346,7 @@ viewFinished =
                 [ text "← Back" ]
             ]
         , div [ class "final-image" ]
-            [ img [ src "./static/img/arny_thumbs_up.png" ] []
+            [ img [ src "./img/arny_thumbs_up.png" ] []
             ]
         ]
 

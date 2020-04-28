@@ -458,7 +458,7 @@ viewTimerForm { exercises, work, rest, rounds, roundRest } =
                     ]
                 , div [ class "row row_exercises" ]
                     [ label [] [ text "Exercises" ]
-                    , select [ onInput UpdateExercisesQuantity ] (viewRenderOptions 1 20 1 exercises)
+                    , select [ onInput UpdateExercisesQuantity ] (viewRenderOptions 1 24 1 exercises)
                     ]
                 ]
             , div [ class "row row_round" ]

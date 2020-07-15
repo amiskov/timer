@@ -1,10 +1,17 @@
 port module Main exposing (..)
 
 import Browser
+import Json
 import Html exposing (..)
-import Html.Attributes exposing (class, disabled, selected, src, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Attributes exposing (class, style, disabled, selected, src, type_, value)
+
+import Html.Events exposing (onClick, onSubmit, onInput, onSubmit)
 import Time
+
+
+
+
+
 
 
 port loadSample : String -> Cmd msg

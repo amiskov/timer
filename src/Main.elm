@@ -67,6 +67,10 @@ initialCountdown =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
+    let
+        _ =
+            Debug.log "test" "test"
+    in
     ( { step = Setup
       , timer =
             { exercises = 10

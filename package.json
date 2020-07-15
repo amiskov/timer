@@ -4,7 +4,8 @@
   "description": "Simple interval timer made with Elm for workouts like [this one](https://youtu.be/XJaPx0v6CJQ).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "review": "elm-review"
   },
   "repository": {
     "type": "git",

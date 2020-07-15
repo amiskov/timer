@@ -1,5 +1,6 @@
 .DS_Store
 elm-stuff
+node_modules
 src/Temp.elm
 static/sounds/run_away.mp3
 static/sounds/appl.mp3

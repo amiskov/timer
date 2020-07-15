@@ -1,0 +1,24 @@
+{
+  "name": "interval-timer",
+  "version": "1.0.0",
+  "description": "Simple interval timer made with Elm for workouts like [this one](https://youtu.be/XJaPx0v6CJQ).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amiskov/timer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amiskov/timer/issues"
+  },
+  "homepage": "https://github.com/amiskov/timer#readme",
+  "dependencies": {
+    "elm-format": "^0.8.3",
+    "elm-review": "^2.2.6"
+  }
+}

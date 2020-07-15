@@ -7,11 +7,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # - name: Set Node.js
-      #   uses: actions/setup-node@master
+      - name: Set Node.js
+        uses: actions/setup-node@master
 
-      # - name: Get deps
-      #   run: npm install
+      - name: Get deps
+        run: yarn
+
       - name: "elm-format"
         uses: sparksp/elm-format-action@v1
 
@@ -20,5 +21,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Build asset
-      #   run: npm build
+      - name: Build asset
+        run: npm build

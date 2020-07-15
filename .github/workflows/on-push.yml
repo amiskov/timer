@@ -13,6 +13,9 @@ jobs:
       - name: Get deps
         run: yarn
 
+      - name: Add `node_modules/.bin` to path
+        run: echo ::add-path::$(yarn bin)
+
       - name: "elm-format"
         uses: sparksp/elm-format-action@v1
 

@@ -4,7 +4,6 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class, disabled, selected, src, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
-import Json
 import Time
 
 
@@ -68,10 +67,6 @@ initialCountdown =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    let
-        _ =
-            Debug.log "test" "test"
-    in
     ( { step = Setup
       , timer =
             { exercises = 10

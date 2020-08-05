@@ -8,7 +8,7 @@
     <title>Interval Timer</title>
     <link rel="apple-touch-icon" href="./timer.png">
     <link rel="stylesheet" href="./style.css">
-    <!-- <link rel="manifest" href="./manifest.webmanifest"> -->
+     <link rel="manifest" href="./manifest.webmanifest">
 </head>
 
 <body>
@@ -17,11 +17,11 @@
     </div>
 
     <script>
-        // if ('serviceWorker' in navigator) {
-        //     navigator.serviceWorker
-        //         .register('./sw.js')
-        //         .then(function () { console.log('Service Worker Registered'); });
-        // }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker
+                .register('./sw.js')
+                .then(function () { console.log('Service Worker Registered'); });
+        }
     </script>
 
     <script src="./timer.js"></script>

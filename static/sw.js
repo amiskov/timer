@@ -2,13 +2,13 @@ self.addEventListener('install', function (e) {
     e.waitUntil(
         caches.open('video-store').then(function (cache) {
             return cache.addAll([
-                '/timer/',
-                '/timer/index.html',
-                '/timer/static/timer.js',
-                '/timer/static/style.css',
-                '/timer/static/img/arny_thumbs_up.jpg',
-                '/timer/static/sounds/bell.mp3',
-                '/timer/static/sounds/alert.mp3',
+                '/',
+                './index.html',
+                './timer.js',
+                './style.css',
+                './img/arny_thumbs_up.png',
+                './sounds/bell.mp3',
+                './sounds/alert.mp3',
             ]);
         })
     );

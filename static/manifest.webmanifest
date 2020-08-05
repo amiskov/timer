@@ -4,12 +4,12 @@
     "display": "standalone",
     "icons": [
       {
-        "src": "/static/timer.png",
+        "src": "./timer.png",
         "sizes": "150x150",
         "type": "image/png"
       }
     ],
     "name": "Interval Timer",
     "short_name": "Timer",
-    "start_url": "/index.html"
+    "start_url": "./index.html"
   }

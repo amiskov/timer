@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Interval Timer</title>
+    <link rel="apple-touch-icon" href="./timer.png">
+    <link rel="stylesheet" href="./style.css">
+     <link rel="manifest" href="./manifest.webmanifest">
+</head>
+
+<body>
+    <div class="timer">
+        <div id="app"></div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker
+                .register('./sw.js')
+                .then(function () { console.log('Service Worker Registered'); });
+        }
+    </script>
+
+    <script src="./timer.js"></script>
+    <script>
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioContext = new AudioContext();
+
+        audioContext.onstatechange = function () {
+            console.log("audioContext state changed:", this.state);
+        }
+
+        const app = Elm.Main.init({
+            node: document.getElementById('app')
+        });
+
+        const samples = {};
+
+        app.ports.loadSample.subscribe(filename => {
+            const key = filename;
+            const url = `./sounds/${filename}.mp3`;
+
+            if (samples[key] == null) {
+                window.fetch(url)
+                    .then(response => response.arrayBuffer())
+                    .then(arrayBuffer => {
+                        return audioContext.decodeAudioData(arrayBuffer,
+                            audioBuffer => {
+                                samples[key] = audioBuffer;
+                                console.log(key, "sample has been loaded.")
+                            },
+                            error =>
+                                console.error(error)
+                        )
+                    })
+            }
+        });
+
+        app.ports.resumeAudioContext.subscribe(function () {
+            console.log('Go! button pressed, resume audioContext.')
+            audioContext.resume();
+        });
+
+        app.ports.play.subscribe(filename => {
+            const source = audioContext.createBufferSource();
+            source.buffer = samples[filename];
+            source.connect(audioContext.destination);
+            source.start(0);
+        });
+
+        app.ports.stopAllSounds.subscribe(function () {
+            audioContext.close();
+            audioContext = new AudioContext();
+        });
+    </script>
+</body>
+
+</html>
